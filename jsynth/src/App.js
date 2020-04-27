@@ -1,26 +1,49 @@
-import React from 'react';
-import logo from './logo.svg';
+import React, { useEffect, useState, useRef } from 'react';
+import Tone from "tone";
+import C1 from "./samples/p.wav";
 import './App.css';
+//import AudioGraph from "./graph.js"
+import FlexGraph from "./flexgraph.js"
+
+var buffer1 = new Tone.Buffer(C1);
+export var GrainBuffer = null;
 
 function App() {
+  const [isLoaded, setLoaded]  = useState(false);
+  const grainSampler = useRef(null);
+  const [updateDom, setUpdateDom] = useState(0);
+  
+ useEffect(() => {
+    grainSampler.current = new Tone.GrainPlayer({ 
+      url: buffer1 ,
+      loop: true,
+      playbackRate : .5,
+      grainSize: 0.1,
+      overlap: 0.2,
+      loopStart: 0,
+      loopEnd: .7,
+      reverse: true  
+    }, ).toMaster(); 
+    
+  },[]);
+    
+
+    
+  // },[]);
+ 
+  const handleClick = () =>  {
+    grainSampler.current.start();
+    GrainBuffer = grainSampler.current.buffer.toArray(); 
+    setUpdateDom(updateDom + 1);
+    console.log(grainSampler.current.buffer.toArray());
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+      <FlexGraph/>
+      <button  onClick={handleClick}>start</button>
     </div>
   );
-}
+};
 
 export default App;

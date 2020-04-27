@@ -9,6 +9,7 @@
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "react-scripts": "3.4.1",
+    "react-vis": "^1.11.7",
     "tone": "^13.8.25"
   },
   "scripts": {
