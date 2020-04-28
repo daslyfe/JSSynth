@@ -5,8 +5,6 @@ let canvasWidth = 40;
 let canvasHeight= 40;
 let heightMultiplier = canvasWidth/canvasHeight;
 let viewBox = "0 0 100 "  + (100 / heightMultiplier).toString();
-console.log(viewBox);
-
 
 function getRectangleSVG(key, topLeftPoint, width, height, fill, strokeColor, strokeWidth, radius) {
     return(  
@@ -112,30 +110,7 @@ function getPathSVG (points, color, strokeWidth, smoothing) {
     
     return (svgPath(points, lineCommand));
 }
-// function binarySearchXY(array) {
-//     let xMin = 0;
-//     let xMax = 0;
-//     let yMin = 0;
-//     let yMax = 0;
-//     let firstIndex = 0;
-//     let lastIndex = array.length -1;
-//     let middleIndex = Math.floor((lastIndex + firstIndex) /2);
-//     while (firstIndex < lastIndex) {
 
-
-//     }
-// function dumbFunction() {
-//     let array = [[0, 190],[150, 100],  [40, 80], [60, 20], [90, 90]];
-//     let someArray = array.sort(function(a, b) {
-//         return parseFloat(a[0]) - parseFloat(b[0]);
-//     })
-//     console.log(array);
-//     console.log(someArray);
-// }
-// dumbFunction();
-
-
-//[[],[]], percentage as int, percentage as int, [[],[]]
 function sortXYArray(XYarray, xLimit, yLimit, range) {
 
     let lastEntry = XYarray.length -1;
@@ -184,7 +159,7 @@ function sortXYArray(XYarray, xLimit, yLimit, range) {
     }
     data.padLeft = (100-xLimit)/2;
     data.padTop = (100-yLimit)/2;
-    //console.log(data.yLimit);
+ 
 
     data.xMultiplier = data.xLimit/(data.xMax - data.xMin);
     data.yMultiplier = data.yLimit/(data.yMax - data.yMin);
@@ -196,7 +171,7 @@ function sortXYArray(XYarray, xLimit, yLimit, range) {
     return(data);
     
 }
-function getTextSVG(display, xy, fontSize, color, rotate) {
+function getTextSVG(key, display, xy, fontSize, color) {
     if (!xy) {
         xy = [1, 10];
     }
@@ -207,18 +182,18 @@ function getTextSVG(display, xy, fontSize, color, rotate) {
         color = "black";
     }
     
-    return (<text style={{fontSize: fontSize}} fill ={color} x={xy[0]} y={xy[1]}>{display}</text>);
+    return (<text key={key} style={{fontSize: fontSize}} fill ={color} x={xy[0]} y={xy[1]}>{display}</text>);
 }
 
-function getXAxisSVG(sortedData, fontSize, lineSize, color, xName) { 
+function getXAxisSVG(sortedData, styles) { 
     let textArray = [];
     let tickArray = [];
     let middleX = ((100 - sortedData.padLeft) + sortedData.padLeft/2) /2 ;
-    let xLine = getPathSVG([[sortedData.padLeft, 100 - sortedData.padTop], [100 - sortedData.padLeft, 100 - sortedData.padTop]], color, lineSize);
-    console.log(sortedData.padLeft);
-    textArray.push(getTextSVG(sortedData.xMin, [sortedData.padLeft + "%", 100 - (sortedData.padTop / 2) + "%" ], fontSize, color));
-    textArray.push(getTextSVG(sortedData.xMax, [100 - sortedData.padLeft + "%", 100 - (sortedData.padTop / 2) + "%" ], fontSize, color));
-    textArray.push(getTextSVG(xName, [100 - middleX/2, 100 - (sortedData.padTop *1.2) + "%"], fontSize, color));
+    let xLine = getPathSVG([[sortedData.padLeft, 100 - sortedData.padTop], [100 - sortedData.padLeft, 100 - sortedData.padTop]], styles.axisColor, styles.axisLineSize);
+ 
+    textArray.push(getTextSVG("xMinText", sortedData.xMin, [sortedData.padLeft + "%", 100 - (sortedData.padTop / 2) + "%" ], styles.fontSize, styles.axisColor));
+    textArray.push(getTextSVG("xMaxText", sortedData.xMax, [100 - sortedData.padLeft + "%", 100 - (sortedData.padTop / 2) + "%" ], styles.fontSize, styles.axisColor));
+    textArray.push(getTextSVG("xNameText", styles.xName, [100 - middleX/2, 100 - (sortedData.padTop *1.2) + "%"], styles.fontSize, styles.axisColor ));
     return (
         <svg  >
             {textArray}
@@ -228,20 +203,19 @@ function getXAxisSVG(sortedData, fontSize, lineSize, color, xName) {
     )
 }
 //<g transform='rotate(90), translate(10.000000, -55.000000)' ></g>
-function getYAxisSVG(sortedData, fontSize, lineSize, color, yName) { 
+function getYAxisSVG(sortedData, styles) { 
     let textArray = [];
     let tickArray = [];
     
     let middleX = ((100 - sortedData.padLeft) + sortedData.padLeft/2) /2 ;
-    let yLine = getPathSVG([[sortedData.padLeft, 100 - sortedData.padTop], [sortedData.padLeft, sortedData.padTop]], color, lineSize);
-    textArray.push(getTextSVG(sortedData.yMin, [(sortedData.padLeft/2) + "%", 100 - (sortedData.padTop) + "%" ], fontSize, color));
-    textArray.push(getTextSVG(sortedData.yMax, [sortedData.padLeft/2 + "%", sortedData.padTop + "%" ], fontSize, color));
-  
-    let label = getTextSVG(yName, [ (-middleX/2) / heightMultiplier , sortedData.padLeft * 1.3 ], fontSize, color);
+    let yLine = getPathSVG([[sortedData.padLeft, 100 - sortedData.padTop], [sortedData.padLeft, sortedData.padTop]], styles.axisColor, styles.axisLineSize);
+    textArray.push(getTextSVG("yMinText", sortedData.yMin, [(sortedData.padLeft/2) + "%", 100 - (sortedData.padTop) + "%" ], styles.fontSize, styles.axisColor));
+    textArray.push(getTextSVG("yMaxTExt", sortedData.yMax, [sortedData.padLeft/2 + "%", sortedData.padTop + "%" ], styles.fontSize, styles.axisColor));
+    let label = getTextSVG("ylabeltext", styles.yName, [ (-middleX/2) / heightMultiplier , sortedData.padLeft * 1.3 ], styles.fontSize, styles.axisColor);
 
     return (
-        <svg >
-            <g  transform='rotate(-90) ' >{label}</g>
+        <svg>
+            <g transform='rotate(-90)' >{label}</g>
             {textArray}
             {tickArray}         
             {yLine}       
@@ -251,47 +225,54 @@ function getYAxisSVG(sortedData, fontSize, lineSize, color, yName) {
 function getZeroLine(sortedData, styles) {
     
     if (sortedData.yMin <= 0 && sortedData.yMax > 0) {  
-
         let y = sortedData.yLimit - ((0 - sortedData.yMin) * sortedData.yMultiplier) + sortedData.padTop;
         let range = [[], []];
         range = [[sortedData.padLeft, y ], [100 - sortedData.padLeft, y]];
-
-        return(getPathSVG(range, styles.zeroLineColor, styles.zeroLineSize));
+        let path = getPathSVG(range, styles.zeroLineColor, styles.zeroLineSize);
+        let text = getTextSVG("0LineMark", "0", [100 - sortedData.padLeft/1.2, y + "%"], styles.fontSize, styles.zeroLineColor)
+        return(
+            <svg>
+                {text}
+                {path}
+            </svg>
+            );
     }
 }
-function graphPoints(key, drawArray, color, radius ) {
 
+//plot scatter plot points with sorted data and styles
+function graphPoints(key, sortedData, styles) {
+    let radius = styles.pointSize;
     let circleArray= [];
     if (!radius) {
         radius = 1;
     }
      
-    for (let pair in drawArray) {
-        circleArray.push(getCircleSVG(key+pair, color, "none", "none", drawArray[pair][0], drawArray[pair][1], radius));
+    for (let pair in sortedData.drawArray) {
+        circleArray.push(getCircleSVG(key+pair, styles.pointColor, "none", "none", sortedData.drawArray[pair][0], sortedData.drawArray[pair][1], radius));
     }
-
     return (circleArray);
-
 }
+
 function LineMarkGraph(data, styles) {
     let defaults = {
         lineSize: .2,
-        lineColor: "black",
+        lineColor: "#75B8A0",
         fontSize: 2,
-        axisColor: "black",
+        axisColor: "#7BA7F0",
         axisLineSize: .2,
-        pointColor: "green",
+        pointColor: "#75B8A0",
         pointSize: 1,
         xName: "X-axis",
         yName: "Y-axis",
-        zeroLineColor: "green",
-        zeroLineSize: .5
+        zeroLineColor: "#FFAAAA",
+        zeroLineSize: .3,
+        background: "none"
     }
 
-    console.log(data);
+ 
     //load default data if none present
     if (!data) {
-        data = [[-50, 0],[100, 200],  [140, -800], [60, 20], [90, 90]];
+        data = [[-50, 0],[100, 200],  [140, -10], [60, 20], [90, 90]];
     }
     
     if (!styles) {
@@ -300,20 +281,19 @@ function LineMarkGraph(data, styles) {
     }
  
     let sortedData = sortXYArray(data, 80, 80, );
-    console.log(sortedData);
-
+  
     //let aSquare = getRectangleSVG("sq", [0,0], 100, 20, "red");
     //let aCircle = getCircleSVG("circ", "blue", "none", "none", 90, 90, 1,  );
-    let aPath = getPathSVG(sortedData.drawArray, styles.lineColor, styles.lineSize);
-    let plot = graphPoints("pointsarray", sortedData.drawArray, styles.pointColor, styles.pointSize);
-    let XAxis = getXAxisSVG(sortedData, styles.fontSize, styles.lineSize, styles.axisColor, styles.xName );
-    let YAxis = getYAxisSVG(sortedData, styles.fontSize, styles.lineSize, styles.axisColor, styles.yName );
+    let aPath = getPathSVG(sortedData.drawArray, styles.lineColor, styles.lineSize, );
+    let plot = graphPoints("pointsarray", sortedData, styles);
+    let XAxis = getXAxisSVG(sortedData, styles);
+    let YAxis = getYAxisSVG(sortedData, styles);
     let zeroLine = getZeroLine(sortedData, styles);
 
     return (
         <div style={{position: "absolute", left: "10%", width: canvasWidth + "%", height: canvasHeight + "%"}}>yo
-            <svg style={{background: 'lightgray'}} viewBox={viewBox}>
-               {aPath}{plot}{XAxis}{YAxis}{zeroLine}
+            <svg style={{background: styles.background}} viewBox={viewBox}>
+                {zeroLine}{XAxis}{YAxis}{aPath}{plot}
             </svg>
         </div>
     )
