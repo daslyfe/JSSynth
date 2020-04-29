@@ -1,4 +1,6 @@
 import React from 'react';
+// import initReactFastclick from 'react-fastclick';
+// initReactFastclick();
 
 function FlexGraph() {
     
@@ -11,15 +13,17 @@ function FlexGraph() {
     function rndNearTenth(num) {
         return Math.round(num * 100) / 100;
     }
-    
+
+    function diff(a,b){return Math.abs(a-b);}
+
     function getValueDisplay(sortedData, styles) {
-        console.log("got value display");
-        let label = getTextSVG("displaytext", display, [ 40, 100 - sortedData.padTop/2 + "%"], styles.fontSize, styles.clickPointColor); 
+
+        let label = getTextSVG("displaytext", display, [ 40, sortedData.padTop* .9 + "%"], styles.fontSize, styles.clickPointColor); 
         return <svg>{label}</svg>
 
     }
 
-    function getRectangleSVG(key, topLeftPoint, width, height, fill, strokeColor, strokeWidth, radius) {
+    function getRectangleSVG(key, topLeftPoint, width, height, fill, strokeColor, strokeWidth, radius, mouseDown, mouseOut, mouseOver) {
         return(  
             <rect 
             key={key}
@@ -29,19 +33,23 @@ function FlexGraph() {
             stroke={strokeColor} //string
             strokeWidth={strokeWidth} 
             rx={radius}
+            onMouseDown={mouseDown}
+            onMouseOut={mouseOut}
+            onMouseOver={mouseOver}
         />  
         )
     }
 
 
-    function getCircleSVG(key, fill, strokeColor, strokeWidth, centerX, centerY, xRadius, yRadius, onClick) {
+    function GetCircleSvg(key, fill, strokeColor, strokeWidth, centerX, centerY, xRadius, yRadius, onClick, mouseOver, mouseExit) {
+ 
         if (!yRadius) {
             yRadius = xRadius * heightMultiplier;
         }
         else {
             yRadius = yRadius * heightMultiplier;
         }
-        //onClick = () => console.log("clicked");
+    
         return(
             <ellipse 
                 key={key}
@@ -50,12 +58,15 @@ function FlexGraph() {
                 fill={fill}
                 stroke={strokeColor} //string
                 strokeWidth={strokeWidth} 
-                onClick={onClick}
+                onMouseDown={onClick}
+                onMouseOut={mouseExit}
+                onMouseOver={mouseOver}
+                            
             />  
         )
     }
 
-    function getPathSVG (points, color, strokeWidth, smoothing, dashSize) {
+    function getPathSVG (key, points, color, strokeWidth, smoothing, dashSize) {
         if (!color) {
             color= "black";
         }
@@ -78,7 +89,7 @@ function FlexGraph() {
             : `${acc} ${command(point, i, a)}`
             , '')
         
-            return <path style={{position: "absolute", width: 7, strokeDasharray: dashSize}} d={d} fill="none" stroke={color} strokeWidth={strokeWidth}/>
+            return <path key={key} style={{position: "absolute", width: 7, strokeDasharray: dashSize}} d={d} fill="none" stroke={color} strokeWidth={strokeWidth}/>
         }
 
 
@@ -180,9 +191,21 @@ function FlexGraph() {
         data.padLeft = (100-xLimit)/2;
         data.padTop = (100-yLimit)/2;
     
+        let xDiff = data.xMax - data.xMin;
+        let yDiff = data.yMax - data.yMin;
+        if (xDiff != 0){
+            data.xMultiplier = data.xLimit/xDiff;
+        }
+        else {
+            data.xMultiplier = 1
+        }
 
-        data.xMultiplier = data.xLimit/(data.xMax - data.xMin);
-        data.yMultiplier = data.yLimit/(data.yMax - data.yMin);
+        if (yDiff != 0) {
+            data.yMultiplier = data.yLimit/yDiff;
+        }
+        else {
+            data.yMultiplier = 1;
+        }
         //now you need to reduce data.drawArray so the max value of x and y is the limit
 
         for (let pair in data.xAscending) {
@@ -208,12 +231,24 @@ function FlexGraph() {
     function getXAxisSVG(sortedData, styles) { 
         let textArray = [];
         let tickArray = [];
+
         let middleX = ((100 - sortedData.padLeft) + sortedData.padLeft/2) /2 ;
-        let xLine = getPathSVG([[sortedData.padLeft, 100 - sortedData.padTop], [100 - sortedData.padLeft, 100 - sortedData.padTop]], styles.axisColor, styles.axisLineSize);
-    
-        textArray.push(getTextSVG("xMinText", sortedData.xMin, [sortedData.padLeft + "%", 100 - (sortedData.padTop / 2) + "%" ], styles.fontSize, styles.axisColor));
-        textArray.push(getTextSVG("xMaxText", sortedData.xMax, [100 - sortedData.padLeft + "%", 100 - (sortedData.padTop / 2) + "%" ], styles.fontSize, styles.axisColor));
+        let xLine = getPathSVG("xLine", [[sortedData.padLeft, 100 - sortedData.padTop], [100 - sortedData.padLeft, 100 - sortedData.padTop]], styles.axisColor, styles.axisLineSize);
+  
+        let rulerOffset = sortedData.xLimit/styles.xTicks;
+        let rulerStep = diff(sortedData.xMin, sortedData.xMax) /styles.xTicks;
+        let rulerPosition = sortedData.padLeft;
+        for (let i = 0; i <= styles.xTicks; i++) {
+            //push ruler values to text array spaced out evenly
+            textArray.push(getTextSVG("xrulerValue" + i, Math.round(sortedData.xMin + (rulerStep * i)), [rulerPosition + (rulerOffset * i) + "%", 100 - (sortedData.padTop / 2) + "%" ], styles.fontSize, styles.axisColor));
+            if (i >= 1) {
+                tickArray.push(getPathSVG("xTick" + i, [[rulerPosition + (rulerOffset * i) , 100 - sortedData.padTop], [rulerPosition + (rulerOffset * i) , sortedData.padTop]], styles.tickColor, styles.tickLineSize));
+                
+            }
+        }
+        
         textArray.push(getTextSVG("xNameText", styles.xName, [100 - middleX/2, 100 - (sortedData.padTop *1.2) + "%"], styles.fontSize, styles.axisColor ));
+
         return (
             <svg  >
                 {textArray}
@@ -228,9 +263,19 @@ function FlexGraph() {
         let tickArray = [];
         
         let middleX = ((100 - sortedData.padLeft) + sortedData.padLeft/2) /2 ;
-        let yLine = getPathSVG([[sortedData.padLeft, 100 - sortedData.padTop], [sortedData.padLeft, sortedData.padTop]], styles.axisColor, styles.axisLineSize);
-        textArray.push(getTextSVG("yMinText", sortedData.yMin, [(sortedData.padLeft/2) + "%", 100 - (sortedData.padTop) + "%" ], styles.fontSize, styles.axisColor));
-        textArray.push(getTextSVG("yMaxTExt", sortedData.yMax, [sortedData.padLeft/2 + "%", sortedData.padTop + "%" ], styles.fontSize, styles.axisColor));
+        let yLine = getPathSVG("yLine", [[sortedData.padLeft, 100 - sortedData.padTop], [sortedData.padLeft, sortedData.padTop]], styles.axisColor, styles.axisLineSize);
+        
+        let rulerOffset = sortedData.yLimit/styles.yTicks; //the offset for thephysical position on the canvas
+        let rulerStep = diff(sortedData.yMin, sortedData.yMax) /styles.yTicks; //the value offset 
+        let rulerPosition = 100 - sortedData.padTop; 
+        for (let i = 0; i <= styles.yTicks; i++) {
+            //push ruler values to text array spaced out evenly
+            textArray.push(getTextSVG("yrulervalue" + i, Math.round(sortedData.yMin + (rulerStep * i)), [(sortedData.padLeft/2) + "%", rulerPosition - (rulerOffset * i) + "%" ], styles.fontSize, styles.axisColor));
+            if (i >= 1) {
+                tickArray.push( getPathSVG("ytickline" + i, [[sortedData.padLeft, rulerPosition - (rulerOffset * i)], [100 -sortedData.padLeft, rulerPosition - (rulerOffset * i)]], styles.tickColor, styles.tickLineSize));
+            }
+        }
+        
         let label = getTextSVG("ylabeltext", styles.yName, [ (-middleX/2) / heightMultiplier , sortedData.padLeft * 1.3 ], styles.fontSize, styles.axisColor);
 
         return (
@@ -248,7 +293,7 @@ function FlexGraph() {
             let y = sortedData.yLimit - ((0 - sortedData.yMin) * sortedData.yMultiplier) + sortedData.padTop;
             let range = [[], []];
             range = [[sortedData.padLeft, y ], [100 - sortedData.padLeft, y]];
-            let path = getPathSVG(range, styles.zeroLineColor, styles.zeroLineSize, false, .8);
+            let path = getPathSVG("zeroline", range, styles.zeroLineColor, styles.zeroLineSize, false, .8);
             let text = getTextSVG("0LineMark", "0", [100 - sortedData.padLeft/1.2, y + "%"], styles.fontSize, styles.zeroLineColor)
             return(
                 <svg>
@@ -265,9 +310,10 @@ function FlexGraph() {
 
     function GraphPoints(key, sortedData, styles) {
         let circleArray = [];
-        let radius = styles.pointSize;   
+         
         const [selectedPoint, setSelectedPoint] = React.useState();
- 
+        const [hovered, setHovered] = React.useState();
+
         function handlePointClick(pair) {
             setSelectedPoint(pair);
             let xVal = sortedData.xAscending[pair][0];
@@ -276,19 +322,26 @@ function FlexGraph() {
 
         }
         
-        if (!radius) {
-            radius = 1;
-        }
+
         
         for (let pair in sortedData.drawArray) {
             let color = styles.pointColor;
+            let radius = styles.pointSize;  
             if (pair === selectedPoint) {
                 color = styles.clickPointColor;
+                radius = styles.selectedPointSize;
             }
+            if (pair === hovered)  {
+                radius = styles.selectedPointSize;
+            }
+            
             let xDraw = sortedData.drawArray[pair][0];
+            
             let yDraw = sortedData.drawArray[pair][1];
+            let mouseOver = () => setHovered(pair);
+            let mouseExit = () => setHovered(null);
             let onClick = () => {handlePointClick(pair)};
-            circleArray.push(getCircleSVG(key+pair, color, "none", "none", xDraw, yDraw, radius, radius, onClick)); 
+            circleArray.push(GetCircleSvg(key+pair, color, "none", "none", xDraw, yDraw, radius, radius, onClick, mouseOver, mouseExit)); 
         }
 
         return (circleArray);
@@ -302,16 +355,20 @@ function FlexGraph() {
             fontSize: 2,
             axisColor: "#7BA7F0",
             axisLineSize: .2,
+            xTicks: 4,
+            yTicks: 4, 
+            tickColor: "#E8E8E8	",
+            tickLineSize: .1,
             pointColor: "#75B8A0",
             clickPointColor: "#C18FE4",
             pointSize: 1,
+            selectedPointSize: 2,
             xName: "X-axis",
             yName: "Y-axis",
             zeroLineColor: "#FFAAAA",
             zeroLineSize: .3,
             background: "none",     
         }
-
     
         //load default data if none present
         if (!data) {
@@ -326,11 +383,9 @@ function FlexGraph() {
         let sortedData = sortXYArray(data, 80, 80, );
     
         //let aSquare = getRectangleSVG("sq", [0,0], 100, 20, "red");
-        //let aCircle = getCircleSVG("circ", "blue", "none", "none", 90, 90, 1,  );
-        let aPath = getPathSVG(sortedData.drawArray, styles.lineColor, styles.lineSize, );
+        //let aCircle = GetCircleSvg("circ", "blue", "none", "none", 90, 90, 1,  );
+        let Path = getPathSVG("graphPath", sortedData.drawArray, styles.lineColor, styles.lineSize, );
         let plot = GraphPoints("pointsarray", sortedData, styles);
-        console.log("plot");
-        console.log(plot);
         let XAxis = getXAxisSVG(sortedData, styles);
         let YAxis = getYAxisSVG(sortedData, styles);
         let zeroLine = getZeroLine(sortedData, styles);
@@ -339,7 +394,61 @@ function FlexGraph() {
         return (
             <div style={{position: "absolute", left: "10%", width: canvasWidth + "%", height: canvasHeight + "%"}}>
                 <svg style={{background: styles.background}} viewBox={viewBox}>
-                    {zeroLine}{XAxis}{YAxis}{aPath}{plot}{displaySVG}
+                    {zeroLine}{XAxis}{YAxis}{Path}{plot}{displaySVG}
+                </svg>
+            </div>
+        )
+
+    }
+
+    function CompareGraph(data, styles) {
+
+        let defaults = {
+            lineSize: .2,
+            lineColor: "#75B8A0",
+            fontSize: 2,
+            axisColor: "#7BA7F0",
+            axisLineSize: .2,
+            xTicks: 4,
+            yTicks: 4, 
+            tickColor: "#E8E8E8	",
+            tickLineSize: .1,
+            pointColor: "#75B8A0",
+            clickPointColor: "#C18FE4",
+            pointSize: 1,
+            selectedPointSize: 2,
+            xName: "X-axis",
+            yName: "Y-axis",
+            zeroLineColor: "#FFAAAA",
+            zeroLineSize: .3,
+            background: "none",     
+        }
+    
+        //load default data if none present
+        if (!data) {
+            data = [[1, 20], [1, 200], [10, 20]];
+        }
+        
+        if (!styles) {
+            //styles = defaults;
+            styles = defaults;  
+        }
+    
+        let sortedData = sortXYArray(data, 80, 80, );
+    
+        //let aSquare = getRectangleSVG("sq", [0,0], 100, 20, "red");
+        //let aCircle = GetCircleSvg("circ", "blue", "none", "none", 90, 90, 1,  );
+        let Path = getPathSVG("graphPath", sortedData.drawArray, styles.lineColor, styles.lineSize, );
+        let plot = GraphPoints("pointsarray", sortedData, styles);
+        let XAxis = getXAxisSVG(sortedData, styles);
+        let YAxis = getYAxisSVG(sortedData, styles);
+        let zeroLine = getZeroLine(sortedData, styles);
+        let displaySVG = getValueDisplay(sortedData, styles);
+
+        return (
+            <div style={{position: "absolute", left: "10%", width: canvasWidth + "%", height: canvasHeight + "%"}}>
+                <svg style={{background: styles.background}} viewBox={viewBox}>
+                    {zeroLine}{XAxis}{YAxis}{Path}{plot}{displaySVG}
                 </svg>
             </div>
         )
@@ -348,7 +457,7 @@ function FlexGraph() {
     //a blank object is getting passed to the first two params for some reason
 
 
-    return (LineMarkGraph())
+    return (LineMarkGraph());
 }
 
 export default FlexGraph;
