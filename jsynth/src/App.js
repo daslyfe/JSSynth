@@ -40,7 +40,9 @@ function App() {
 
   return (
     <div>
+      <div>
       <FlexGraph/>
+      </div>
       <button  onClick={handleClick}>start</button>
     </div>
   );
