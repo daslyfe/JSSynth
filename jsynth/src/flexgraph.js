@@ -14,7 +14,7 @@ function FlexGraph() {
     
     function getValueDisplay(sortedData, styles) {
         console.log("got value display");
-        let label = getTextSVG("displaytext", display, [ 40, 100 - sortedData.padTop/2 + "%"], styles.fontSize, styles.lineColor); 
+        let label = getTextSVG("displaytext", display, [ 40, 100 - sortedData.padTop/2 + "%"], styles.fontSize, styles.clickPointColor); 
         return <svg>{label}</svg>
 
     }
@@ -265,46 +265,33 @@ function FlexGraph() {
 
     function GraphPoints(key, sortedData, styles) {
         let circleArray = [];
-        let radius = styles.pointSize;
-        let colorArray = [];
-        const [plotPoints, setPlotPoints]= React.useState([]);
-
+        let radius = styles.pointSize;   
+        const [selectedPoint, setSelectedPoint] = React.useState();
+ 
         function handlePointClick(pair) {
-            //circleArray.pop();
-            
+            setSelectedPoint(pair);
             let xVal = sortedData.xAscending[pair][0];
             let yVal = sortedData.xAscending[pair][1];
-            let xDraw = sortedData.drawArray[pair][0];
-            let yDraw = sortedData.drawArray[pair][1];
-            let onClick = () => {handlePointClick(pair)};
-            let splicePoint = getCircleSVG(key+pair, styles.clickPointColor, "none", "none", xDraw, yDraw, radius, radius, onClick);
-            circleArray.splice(pair, 1, splicePoint);
-            let newArray = circleArray.slice();
-            setPlotPoints(newArray);
             setDisplay(styles.xName + ": " + xVal + " " + styles.yName + ": " + yVal);
 
         }
         
-
         if (!radius) {
             radius = 1;
         }
         
         for (let pair in sortedData.drawArray) {
-            //olorArray.push(sortedData.push(sortedData.)
+            let color = styles.pointColor;
+            if (pair === selectedPoint) {
+                color = styles.clickPointColor;
+            }
             let xDraw = sortedData.drawArray[pair][0];
             let yDraw = sortedData.drawArray[pair][1];
             let onClick = () => {handlePointClick(pair)};
-            circleArray.push(getCircleSVG(key+pair, styles.pointColor, "none", "none", xDraw, yDraw, radius, radius, onClick)); 
+            circleArray.push(getCircleSVG(key+pair, color, "none", "none", xDraw, yDraw, radius, radius, onClick)); 
         }
-        
-        
-            React.useEffect(() => {
-                setPlotPoints(circleArray);
-            }, []);
-         
-            console.log(circleArray[0]);
-        return (plotPoints);
+
+        return (circleArray);
     }
 
     function LineMarkGraph(data, styles) {
@@ -316,7 +303,7 @@ function FlexGraph() {
             axisColor: "#7BA7F0",
             axisLineSize: .2,
             pointColor: "#75B8A0",
-            clickPointColor: "blue",
+            clickPointColor: "#C18FE4",
             pointSize: 1,
             xName: "X-axis",
             yName: "Y-axis",
