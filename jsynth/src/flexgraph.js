@@ -4,7 +4,7 @@ import React from 'react';
 
 function FlexGraph() {
     
-    let canvasWidth = 40;
+    let canvasWidth = 80;
     let canvasHeight= 40;
     let heightMultiplier = canvasWidth/canvasHeight;
     let viewBox = "0 0 100 "  + (100 / heightMultiplier).toString();
@@ -124,8 +124,8 @@ function FlexGraph() {
                 const angle = o.angle + (reverse ? Math.PI : 0)
                 const length = o.length * smoothing
                 // The control point position is relative to the current point
-                const x = current[0] + Math.cos(angle) * length
-                const y = current[1] + Math.sin(angle) * length
+                const x = current[0] + Math.cos(angle) * length 
+                const y = current[1] + Math.sin(angle) * length 
                 return [x, y]
             }
         }
@@ -342,7 +342,7 @@ function FlexGraph() {
             }
         }
         
-        textArray.push(getTextSVG("xNameText", styles.xName, [100 - middleX/2, 100 - (sortedData.padTop *1.2) + "%"], styles.fontColor, styles.axisColor ));
+        textArray.push(getTextSVG("xNameText", styles.xName, [100 - middleX/2, 100 - (sortedData.padTop *1.2) + "%"], styles.fontSize, styles.fontColor  ));
 
         return (
             <svg  >
@@ -447,7 +447,7 @@ function FlexGraph() {
     function getBoxAxis(sortedData, styles) {
         let width = 100 - (sortedData.padLeft * 2);
         let height = 100 - (sortedData.padTop * 2);
-        let box = getRectangleSVG("boxAxis",[sortedData.padLeft, sortedData.padTop], width , height, "none", styles.boxAxisColor, styles.axisLineSize, ".1vw")
+        let box = getRectangleSVG("boxAxis",[sortedData.padLeft, sortedData.padTop], width , height, "none", styles.boxAxisColor, styles.axisLineSize, styles.boxRadius)
         let XAxis = getXAxisSVG(sortedData, styles);
         let YAxis = getYAxisSVG(sortedData, styles);
 
@@ -457,10 +457,18 @@ function FlexGraph() {
             </g>
         )
     }
+    function getCanvasBounds(styles) {
+        heightMultiplier = parseInt(styles.canvasWidth)/parseInt(styles.canvasHeight);
+        viewBox = "0 0 100 "  + (100 / heightMultiplier).toString();
+    }
 
     function LineMarkGraph(data, styles) {
         console.log("LineMarkGraph");
         let defaults = {
+            canvasWidth: "40vw",
+            canvasHeight: "40vw",
+            canvasPadLeft: "1vw",
+            canvasPadTop: "1vw",
             lineSize: .2,
             fontSize: 2,
             fontColor: "#7BA7F0",
@@ -492,8 +500,9 @@ function FlexGraph() {
             //styles = defaults;
             styles = defaults;  
         }
-        
-        
+        //apply canvas size in styles to global canvas
+        getCanvasBounds(styles);
+       
      
         let Paths = [];
         let plots = [];
@@ -520,7 +529,7 @@ function FlexGraph() {
         let displaySVG = getValueDisplay(combinedData, styles);
 
         return (
-            <div style={{position: "absolute", left: "10%", width: canvasWidth + "%", height: canvasHeight + "%"}}>
+            <div style={{position: "absolute", top: styles.canvasPadTop, left: styles.canvasPadLeft, width: styles.canvasWidth, height: styles.canvasHeight}}>
                 <svg style={{background: styles.background}} viewBox={viewBox}>
                     {zeroLine}{XAxis}{YAxis}{Paths}{plots}{displaySVG}
                 </svg>
@@ -535,11 +544,16 @@ function FlexGraph() {
         console.log("drawshapes");
 
         let defaults = {
+            canvasWidth: "40vw",
+            canvasHeight: "40vw",
+            canvasPadLeft: 0,
+            canvasPadTop: 0,
             lineSize: .2,
             fontSize: 2,
             fontColor: "#7BA7F0",
             axisColor: "none",
             boxAxisColor: "#7BA7F0",
+            boxRadius: .5,
             axisLineSize: .2,
             xTicks: 1,
             yTicks: 5, 
@@ -549,48 +563,43 @@ function FlexGraph() {
             pointSize: 1,
             selectedPointSize: 2,
             xName: "",
-            yName: "",
+            yName: "thangz",
             zeroLineSize: .3,
-            background: "none",     
+            background: "none",  
+
         }
-    
+        
         //load default data if none present
         if (!data) {
             data = {
                 "#DCDCAA": [[99, 1], [99, 55], [75, 55], [50, 55], [25,55], [1,55], [1, 1]],
-                "#75B8A0": [[99, 1], [99, 30], [75, 25], [50, 30], [25,30], [1,30], [1, 1]]
-                
+                "#75B8A0": [[99, 1], [99, 30], [75, 25], [50, 30], [25,30], [1,30], [1, 1]]            
             };
         }
         
         if (!styles) {
-            //styles = defaults;
             styles = defaults;  
         }
-        
+        getCanvasBounds(styles);
+       
         let Paths = [];
-        let plots = [];
-
         let combinedData = sortXYArray(data, 80, 80, true, [[0,0], [100, 100]] );
         let sortedData = combinedData.sortedData;
         for (let set in sortedData) {
          
-            let Path = getPathSVG("graphPath" + set, sortedData[set].drawArray, sortedData[set].color, styles.lineSize, .01, 0, sortedData[set].color );
+            let Path = getPathSVG("graphPath" + set, sortedData[set].drawArray, sortedData[set].color, styles.lineSize, 0, 0, sortedData[set].color );
             Paths.push(Path);
             
             
         }
-        
-        // let plot = GraphPoints("pointsarray", sortedData, styles);
-        // plots.push(plot);
 
         let displaySVG = getValueDisplay(combinedData, styles);
         let boxAxis = getBoxAxis(combinedData, styles);
 
         return (
-            <div style={{position: "absolute", left: "10%", width: canvasWidth + "%", height: canvasHeight + "%"}}>
+            <div style={{position: "absolute", left: styles.canvasPadLeft,  top: styles.canvasPadTop, width: styles.canvasWidth, height: styles.canvasHeight}}>
                 <svg style={{background: styles.background}} viewBox={viewBox}>
-                   {boxAxis} {Paths}{plots}{displaySVG}
+                   {boxAxis}{Paths}{displaySVG}
                 </svg>
             </div>
         )
