@@ -13,7 +13,10 @@ function FlexGraph() {
     function rndNearTenth(num) {
         return Math.round(num * 100) / 100;
     }
-
+    function invertHex(hex) {
+        return "#" + (Number(`0x1${hex.slice(1)}`) ^ 0xFFFFFF).toString(16).substr(1).toUpperCase()
+    }
+  
     function diff(a,b){return Math.abs(a-b);}
 
     function getValueDisplay(sortedData, styles) {
@@ -141,77 +144,146 @@ function FlexGraph() {
         return (svgPath(points, lineCommand));
     }
 
-    function sortXYArray(XYarray, xLimit, yLimit, range) {
+    function sortXYArray(data, xLimit, yLimit, range) {
+    
 
-        let lastEntry = XYarray.length -1;
-        let data = {
-            xAscending: XYarray.slice(),
-            yAscending: XYarray.slice(),
+        let combinedData = {
+            sortedData: [],
+            xLimit: xLimit,
+            yLimit: yLimit,
             xMin: 0,
             xMax: 0,
             yMin: 0,
             yMax: 0,
-            xLimit: xLimit,
-            yLimit: yLimit,
             padLeft: 0,
             padTop: 0,
-            xMultiplier: 0,
-            yMultiplier: 0,
-            drawArray: [],
+            xMultiplier: 1,
+            yMultiplier: 1
+            
+        };
 
-        }
+        
+        for (let set in data) {
+            let lastEntry = data[set].length -1;
+            let sortedData = {
+                xAscending: data[set].slice(),
+                yAscending: data[set].slice(),
+                xMin: 0,
+                xMax: 0,
+                yMin: 0,
+                yMax: 0,
+                xLimit: xLimit,
+                yLimit: yLimit,
+                padLeft: 0,
+                padTop: 0,
+                xMultiplier: 0,
+                yMultiplier: 0,
+                drawArray: [],
+                color: set
+            }
 
-        data.xAscending.sort(function(a, b) {
-            return parseFloat(a[0]) - parseFloat(b[0]);
-        })
+            sortedData.xAscending.sort(function(a, b) {
+                return a[0] - b[0];
+            })
 
-        data.yAscending.sort(function(a, b) {
-            return a[1] - b[1];
-        });
+            sortedData.yAscending.sort(function(a, b) {
+                return a[1] - b[1];
+            });
 
-        if (!range) {
-            data.xMin = data.xAscending[0][0];
-            data.xMax = data.xAscending[lastEntry][0];
-            data.yMin = data.yAscending[0][1];
-            data.yMax = data.yAscending[lastEntry][1];
-        }
-        else {
-            data.xMin = range[0][0];
-            data.xMax = range[1][0];
-            data.yMin = range[0][1];
-            data.yMax = range[1][1];   
-        }
-        //set the default draw percents to 100% of the canvas
-        if (!xLimit) {
-            data.xLimit = 80;
-        }
-        if (!yLimit) {
-            data.yLimit = 80;
-        }
-        data.padLeft = (100-xLimit)/2;
-        data.padTop = (100-yLimit)/2;
+            //if range hasnt been specified, dynamically create it
+            if (!range) {
+                sortedData.xMin = sortedData.xAscending[0][0];
+                sortedData.xMax = sortedData.xAscending[lastEntry][0];
+                sortedData.yMin = sortedData.yAscending[0][1];
+                sortedData.yMax = sortedData.yAscending[lastEntry][1];
+
+                //if the ranges of the dataset's mins/ maxs exceed the combined data min max, update the combined
+                if (sortedData.xMin < combinedData.xMin) {
+                    combinedData.xMin = sortedData.xMin;
+                }
+                if (sortedData.xMax > combinedData.xMax) {
+                    combinedData.xMax = sortedData.xMax;
+                }
+                if (sortedData.yMin < combinedData.yMin) {
+                    combinedData.yMin = sortedData.yMin;
+                }
+                if (sortedData.xMax > combinedData.yMax) {
+                    combinedData.yMax = sortedData.yMax;
+                }
+                
+            }
+            else {
+                //set the range to specified if it has been specified
+                sortedData.xMin = range[0][0];
+                sortedData.xMax = range[1][0];
+                sortedData.yMin = range[0][1];
+                sortedData.yMax = range[1][1]; 
+                combinedData.xMin = sortedData.xMin;
+                combinedData.xMax = sortedData.xMax; 
+                combinedData.yMin = sortedData.yMin;
+                combinedData.yMax = sortedData.yMax;
+            }
+            //set the default draw percents to 100% of the canvas
+            if (!xLimit) {
+                combinedData.xLimit = 80;
+                sortedData.xLimit = 80;
+            }
+            if (!yLimit) {
+                combinedData.yLimit = 80;
+                sortedData.yLimit = 80;
+            }
+            sortedData.padLeft = (100-xLimit)/2;
+            sortedData.padTop = (100-yLimit)/2;
+        
+            sortedData.xDiff = sortedData.xMax - sortedData.xMin;
+            sortedData.yDiff = sortedData.yMax - sortedData.yMin;
+            if (sortedData.xDiff !== 0){
+                sortedData.xMultiplier = combinedData.xLimit/sortedData.xDiff;
+            }
+            else {
+                sortedData.xMultiplier = 1
+            }
+
+            if (sortedData.yDiff !== 0) {
+                sortedData.yMultiplier = sortedData.yLimit/sortedData.yDiff;
     
-        let xDiff = data.xMax - data.xMin;
-        let yDiff = data.yMax - data.yMin;
-        if (xDiff != 0){
-            data.xMultiplier = data.xLimit/xDiff;
+            }
+            else {
+                sortedData.yMultiplier = 1;
+            }
+            combinedData.sortedData.push(sortedData);
+        };
+        //endof for loop
+
+        combinedData.padLeft = (100-xLimit)/2;
+        combinedData.padTop = (100-yLimit)/2;
+        combinedData.xDiff = combinedData.xMax - combinedData.xMin;
+        combinedData.yDiff = combinedData.yMax - combinedData.yMin;
+        
+        if (combinedData.xDiff !== 0){
+            combinedData.xMultiplier = combinedData.xLimit/combinedData.xDiff;
         }
         else {
-            data.xMultiplier = 1
+            combinedData.xMultiplier = 1
         }
 
-        if (yDiff != 0) {
-            data.yMultiplier = data.yLimit/yDiff;
+        if (combinedData.yDiff !== 0) {
+            combinedData.yMultiplier = combinedData.yLimit/combinedData.yDiff;
+
         }
         else {
-            data.yMultiplier = 1;
+            combinedData.yMultiplier = 1;
         }
-        //now you need to reduce data.drawArray so the max value of x and y is the limit
 
-        for (let pair in data.xAscending) {
-            data.drawArray.push([((data.xAscending[pair][0] - data.xMin) * data.xMultiplier) + data.padLeft, data.yLimit - ((data.xAscending[pair][1] - data.yMin) * data.yMultiplier) + data.padTop ]);
+        for (let set in combinedData.sortedData) {
+            let sortedData = combinedData.sortedData[set];
+            for (let pair in sortedData.xAscending) {
+                combinedData.sortedData[set].drawArray.push([((sortedData.xAscending[pair][0] - combinedData.xMin) * combinedData.xMultiplier) + combinedData.padLeft, combinedData.yLimit - ((sortedData.xAscending[pair][1] - combinedData.yMin) * combinedData.yMultiplier) + combinedData.padTop ]);
+            }    
         }
-        return(data);
+        
+       
+        return(combinedData);
         
     }
     function getTextSVG(key, display, xy, fontSize, color) {
@@ -311,38 +383,41 @@ function FlexGraph() {
     function GraphPoints(key, sortedData, styles) {
         let circleArray = [];
          
-        const [selectedPoint, setSelectedPoint] = React.useState();
-        const [hovered, setHovered] = React.useState();
+        const [selectedPoint, setSelectedPoint] = React.useState([]);
+        const [hovered, setHovered] = React.useState([]);
 
-        function handlePointClick(pair) {
-            setSelectedPoint(pair);
-            let xVal = sortedData.xAscending[pair][0];
-            let yVal = sortedData.xAscending[pair][1];
+        function handlePointClick(set, pair) {
+            setSelectedPoint([set, pair]);
+            let xVal = sortedData[set].xAscending[pair][0];
+            let yVal = sortedData[set].xAscending[pair][1];
             setDisplay(styles.xName + ": " + xVal + " " + styles.yName + ": " + yVal);
-
         }
         
+        for (let set in sortedData) {
+            for (let pair in sortedData[set].drawArray) {
+                let color = sortedData[set].color;
+                let radius = styles.pointSize;  
+             
+                if (set === selectedPoint[0] && pair === selectedPoint[1]) {
+                    color = styles.clickPointColor;
+                    radius = styles.selectedPointSize;
+                }
+                if (set === hovered[0] && pair === hovered[1])  {
+                    radius = styles.selectedPointSize;
+                }
+                
+                let xDraw = sortedData[set].drawArray[pair][0];
+                
+                let yDraw = sortedData[set].drawArray[pair][1];
+                let mouseOver = () => setHovered([set, pair]);
+                let mouseExit = () => setHovered([]);
+                let mouseDown = () => {handlePointClick(set, pair)};
+                circleArray.push(GetCircleSvg(key+pair+set, color, "none", "none", xDraw, yDraw, radius, radius, mouseDown, mouseOver, mouseExit)); 
+            }
 
-        
-        for (let pair in sortedData.drawArray) {
-            let color = styles.pointColor;
-            let radius = styles.pointSize;  
-            if (pair === selectedPoint) {
-                color = styles.clickPointColor;
-                radius = styles.selectedPointSize;
-            }
-            if (pair === hovered)  {
-                radius = styles.selectedPointSize;
-            }
-            
-            let xDraw = sortedData.drawArray[pair][0];
-            
-            let yDraw = sortedData.drawArray[pair][1];
-            let mouseOver = () => setHovered(pair);
-            let mouseExit = () => setHovered(null);
-            let onClick = () => {handlePointClick(pair)};
-            circleArray.push(GetCircleSvg(key+pair, color, "none", "none", xDraw, yDraw, radius, radius, onClick, mouseOver, mouseExit)); 
         }
+
+
 
         return (circleArray);
     }
@@ -351,7 +426,6 @@ function FlexGraph() {
 
         let defaults = {
             lineSize: .2,
-            lineColor: "#75B8A0",
             fontSize: 2,
             axisColor: "#7BA7F0",
             axisLineSize: .2,
@@ -359,7 +433,6 @@ function FlexGraph() {
             yTicks: 4, 
             tickColor: "#E8E8E8	",
             tickLineSize: .1,
-            pointColor: "#75B8A0",
             clickPointColor: "#C18FE4",
             pointSize: 1,
             selectedPointSize: 2,
@@ -372,29 +445,48 @@ function FlexGraph() {
     
         //load default data if none present
         if (!data) {
-            data = [[-50, 0],[100, 200],  [140, -10], [60, 20], [90, 90]];
+            data = {
+                "#75B8A0": [[-50, 0],[100, 200],  [140, -10], [60, 20], [90, 90]],
+                "#DCDCAA": [[-25, 160], [115, 91]]
+            };
         }
         
         if (!styles) {
             //styles = defaults;
             styles = defaults;  
         }
-    
-        let sortedData = sortXYArray(data, 80, 80, );
+        
+        
+     
+        let Paths = [];
+        let plots = [];
+     
+
     
         //let aSquare = getRectangleSVG("sq", [0,0], 100, 20, "red");
         //let aCircle = GetCircleSvg("circ", "blue", "none", "none", 90, 90, 1,  );
-        let Path = getPathSVG("graphPath", sortedData.drawArray, styles.lineColor, styles.lineSize, );
+        let combinedData = sortXYArray(data, 80, 80, );
+        let sortedData = combinedData.sortedData;
+      
+        for (let set in sortedData) {
+         
+            let Path = getPathSVG("graphPath" + set, sortedData[set].drawArray, sortedData[set].color, styles.lineSize, );
+            Paths.push(Path);
+            
+            
+        }
+        
         let plot = GraphPoints("pointsarray", sortedData, styles);
-        let XAxis = getXAxisSVG(sortedData, styles);
-        let YAxis = getYAxisSVG(sortedData, styles);
-        let zeroLine = getZeroLine(sortedData, styles);
-        let displaySVG = getValueDisplay(sortedData, styles);
+        plots.push(plot);
+        let XAxis = getXAxisSVG(combinedData, styles);
+        let YAxis = getYAxisSVG(combinedData, styles);
+        let zeroLine = getZeroLine(combinedData, styles);
+        let displaySVG = getValueDisplay(combinedData, styles);
 
         return (
             <div style={{position: "absolute", left: "10%", width: canvasWidth + "%", height: canvasHeight + "%"}}>
                 <svg style={{background: styles.background}} viewBox={viewBox}>
-                    {zeroLine}{XAxis}{YAxis}{Path}{plot}{displaySVG}
+                    {zeroLine}{XAxis}{YAxis}{Paths}{plots}{displaySVG}
                 </svg>
             </div>
         )
@@ -426,7 +518,7 @@ function FlexGraph() {
     
         //load default data if none present
         if (!data) {
-            data = [[1, 20], [1, 200], [10, 20]];
+            data = [[1, 40], [1, 20]];
         }
         
         if (!styles) {
@@ -436,10 +528,9 @@ function FlexGraph() {
     
         let sortedData = sortXYArray(data, 80, 80, );
     
-        //let aSquare = getRectangleSVG("sq", [0,0], 100, 20, "red");
+        let aSquare = getRectangleSVG("sq", [0,0], 100, 20, "red");
         //let aCircle = GetCircleSvg("circ", "blue", "none", "none", 90, 90, 1,  );
-        let Path = getPathSVG("graphPath", sortedData.drawArray, styles.lineColor, styles.lineSize, );
-        let plot = GraphPoints("pointsarray", sortedData, styles);
+
         let XAxis = getXAxisSVG(sortedData, styles);
         let YAxis = getYAxisSVG(sortedData, styles);
         let zeroLine = getZeroLine(sortedData, styles);
@@ -448,7 +539,7 @@ function FlexGraph() {
         return (
             <div style={{position: "absolute", left: "10%", width: canvasWidth + "%", height: canvasHeight + "%"}}>
                 <svg style={{background: styles.background}} viewBox={viewBox}>
-                    {zeroLine}{XAxis}{YAxis}{Path}{plot}{displaySVG}
+                    {zeroLine}{XAxis}{YAxis}{displaySVG}
                 </svg>
             </div>
         )
