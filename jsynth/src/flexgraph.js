@@ -2,13 +2,13 @@ import React from 'react';
 // import initReactFastclick from 'react-fastclick';
 // initReactFastclick();
 
-function FlexGraph() {
+
     
     let canvasWidth = 80;
     let canvasHeight= 40;
     let heightMultiplier = canvasWidth/canvasHeight;
     let viewBox = "0 0 100 "  + (100 / heightMultiplier).toString();
-    const [display, setDisplay] = React.useState("");
+    let display = "";
 
     function rndNearTenth(num) {
         return Math.round(num * 100) / 100;
@@ -19,14 +19,14 @@ function FlexGraph() {
   
     function diff(a,b){return Math.abs(a-b);}
 
-    function getValueDisplay(sortedData, styles) {
+    export function getValueDisplay(sortedData, styles) {
 
         let label = getTextSVG("displaytext", display, [ 40, sortedData.padTop* .9 + "%"], styles.fontSize, styles.clickPointColor); 
         return <svg>{label}</svg>
 
     }
 
-    function getRectangleSVG(key, topLeftPoint, width, height, fill, strokeColor, strokeWidth, radius, mouseDown, mouseOut, mouseOver) {
+    export function getRectangleSVG(key, topLeftPoint, width, height, fill, strokeColor, strokeWidth, radius, mouseDown, mouseOut, mouseOver) {
         return(  
             <rect 
             key={key}
@@ -44,7 +44,7 @@ function FlexGraph() {
     }
 
 
-    function GetCircleSvg(key, fill, strokeColor, strokeWidth, centerX, centerY, xRadius, yRadius, onClick, mouseOver, mouseExit) {
+    export function GetCircleSvg(key, fill, strokeColor, strokeWidth, centerX, centerY, xRadius, yRadius, onClick, mouseOver, mouseExit) {
  
         if (!yRadius) {
             yRadius = xRadius * heightMultiplier;
@@ -69,7 +69,7 @@ function FlexGraph() {
         )
     }
 
-    function getPathSVG (key, points, color, strokeWidth, smoothing, dashSize, fill) {
+    export function getPathSVG (key, points, color, strokeWidth, smoothing, dashSize, fill) {
         if (!color) {
             color= "black";
         }
@@ -147,7 +147,7 @@ function FlexGraph() {
         return (svgPath(points, lineCommand));
     }
 
-    function sortXYArray(data, xLimit, yLimit, drawFree, range) {
+    export function sortXYArray(data, xLimit, yLimit, drawFree, range) {
         
         if (!drawFree) {
             drawFree = false;    
@@ -309,7 +309,7 @@ function FlexGraph() {
         return(combinedData);
         
     }
-    function getTextSVG(key, display, xy, fontSize, color) {
+    export function getTextSVG(key, display, xy, fontSize, color) {
         if (!xy) {
             xy = [1, 10];
         }
@@ -323,7 +323,7 @@ function FlexGraph() {
         return (<text key={key} style={{fontSize: fontSize}} fill ={color} x={xy[0]} y={xy[1]}>{display}</text>);
     }
 
-    function getXAxisSVG(sortedData, styles) { 
+    export function getXAxisSVG(sortedData, styles) { 
         let textArray = [];
         let tickArray = [];
 
@@ -353,7 +353,7 @@ function FlexGraph() {
         )
     }
     //<g transform='rotate(90), translate(10.000000, -55.000000)' ></g>
-    function getYAxisSVG(sortedData, styles) { 
+    export function getYAxisSVG(sortedData, styles) { 
         let textArray = [];
         let tickArray = [];
         
@@ -382,7 +382,7 @@ function FlexGraph() {
             </svg>   
         )
     }
-    function getZeroLine(sortedData, styles) {
+    export function getZeroLine(sortedData, styles) {
         
         if (sortedData.yMin <= 0 && sortedData.yMax > 0) {  
             let y = sortedData.yLimit - ((0 - sortedData.yMin) * sortedData.yMultiplier) + sortedData.padTop;
@@ -403,17 +403,19 @@ function FlexGraph() {
     //plot scatter plot points with sorted data and styles
     
 
-    function GraphPoints(key, sortedData, styles) {
+    export function GraphPoints(key, sortedData, styles) {
         let circleArray = [];
          
         const [selectedPoint, setSelectedPoint] = React.useState([]);
         const [hovered, setHovered] = React.useState([]);
 
         function handlePointClick(set, pair) {
-            setSelectedPoint([set, pair]);
+            
             let xVal = sortedData[set].xAscending[pair][0];
             let yVal = sortedData[set].xAscending[pair][1];
-            setDisplay(styles.xName + ": " + xVal + " " + styles.yName + ": " + yVal);
+            display = styles.xName + ": " + xVal + " " + styles.yName + ": " + yVal;
+            setSelectedPoint([set, pair]);
+            
         }
         
         for (let set in sortedData) {
@@ -444,7 +446,7 @@ function FlexGraph() {
 
         return (circleArray);
     }
-    function getBoxAxis(sortedData, styles) {
+    export function getBoxAxis(sortedData, styles) {
         let width = 100 - (sortedData.padLeft * 2);
         let height = 100 - (sortedData.padTop * 2);
         let box = getRectangleSVG("boxAxis",[sortedData.padLeft, sortedData.padTop], width , height, "none", styles.boxAxisColor, styles.axisLineSize, styles.boxRadius)
@@ -457,12 +459,12 @@ function FlexGraph() {
             </g>
         )
     }
-    function getCanvasBounds(styles) {
+    export function getCanvasBounds(styles) {
         heightMultiplier = parseInt(styles.canvasWidth)/parseInt(styles.canvasHeight);
         viewBox = "0 0 100 "  + (100 / heightMultiplier).toString();
     }
 
-    function LineMarkGraph(data, styles) {
+   export function LineMarkGraph(data, styles) {
         console.log("LineMarkGraph");
         let defaults = {
             canvasWidth: "40vw",
@@ -540,7 +542,7 @@ function FlexGraph() {
 
 
 
-    function DrawShapesGraph(data, styles) {
+    export function DrawShapesGraph(data, styles) {
         console.log("drawshapes");
 
         let defaults = {
@@ -605,10 +607,13 @@ function FlexGraph() {
         )
 
     }
-    //a blank object is getting passed to the first two params for some reason
-
-
-    return (DrawShapesGraph());
+    
+    
+    //a blank object is getting passed to the first two params for some reason this is a placeholder import as objects instead
+function FlexGraph(props, props2, data, styles) {
+   
+    return (LineMarkGraph(data, styles));
 }
+
 
 export default FlexGraph;

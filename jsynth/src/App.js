@@ -3,16 +3,17 @@ import Tone from "tone";
 import C1 from "./samples/p.wav";
 import './App.css';
 //import AudioGraph from "./graph.js"
-import FlexGraph from "./flexgraph.js"
+import FlexGraph, {DrawShapesGraph, LineMarkGraph} from "./flexgraph.js"
 
 var buffer1 = new Tone.Buffer(C1);
 export var GrainBuffer = null;
 
 function App() {
-  const [isLoaded, setLoaded]  = useState(false);
+ 
   const grainSampler = useRef(null);
   const [updateDom, setUpdateDom] = useState(0);
   
+let SomeGraph = LineMarkGraph();
  useEffect(() => {
     grainSampler.current = new Tone.GrainPlayer({ 
       url: buffer1 ,
@@ -41,7 +42,7 @@ function App() {
   return (
     <div>
       <div>
-      <FlexGraph/>
+      {SomeGraph}
       </div>
       <button  onClick={handleClick}>start</button>
     </div>
