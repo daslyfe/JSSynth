@@ -1,12 +1,15 @@
 import React, { useEffect, useState, useRef, Component } from 'react';
 import Tone from "tone";
 import C1 from "./samples/p.wav";
+import nasa from "./samples/nasa.wav"
+
 import './App.css';
 import { Knob, Pointer, Value, Arc } from './rcknob';
 //import AudioGraph from "./graph.js"
 import FlexGraph, {DrawShapesGraph, LineMarkGraph} from "./flexgraph.js"
 
 var buffer1 = new Tone.Buffer(C1);
+var buffer2 = new Tone.Buffer(nasa);
 export var GrainBuffer = null;
 
 export const knob = {
@@ -14,6 +17,7 @@ export const knob = {
   two: {midi: 0, val: 0},
   three: {midi: 0, val: 0},
   four: {midi: 0, val: 0},
+  five: {midi: 0, val: 0},
 }
 
 
@@ -48,27 +52,50 @@ function drawY(num) {
   return num * mult; 
 }
 
+const limiter = new Tone.Limiter(-6)
+
+
+
+// let fft = new Tone.FFT({size: 16});
+// fft.output.connect(limiter)
 let filter = new Tone.Filter(
   {
     type : "lowpass",
     frequency : 17000 ,
     rolloff : -24 ,
     Q : 2,
-    gain : -20
+    gain : -12
     }
-).connect(Tone.Master)
+)
 
 const grainSampler = new Tone.GrainPlayer({ 
   url: buffer1 ,
   loop: true,
   playbackRate : .1,
-  grainSize: 1,
-  overlap: 2,
+  grainSize: .1,
+  overlap: 0,
   loopStart: 0,
   loopEnd: 10,
   reverse: false,
-  detune: 0  
-}).connect(filter); 
+  detune: 0, 
+  volume: -6 
+}) 
+
+// let vibrato = new Tone.Vibrato ({
+//   maxDelay : 0.005 ,
+//   frequency : 5 ,
+//   depth : 0.1 ,
+//   type : "sine"
+// })
+// let convolver = new Tone.Convolver(buffer2)
+// convolver.wet.value = 0
+
+grainSampler.connect(filter);
+// convolver.connect(filter);
+// vibrato.connect(filter);
+filter.connect(limiter);
+limiter.connect(Tone.Master);
+
 
 
 
@@ -157,9 +184,11 @@ function App() {
   let knobTwo = getKnob("#61CD77", knob.two);
   let knobThree = getKnob("#50506A", knob.three);
   let knobFour = getKnob("#FE6D2C", knob.four);
+  let knobFive = getKnob("gray", knob.five);
 
   knob.one.action = (_knob) => {
     // grainSampler.playbackRate = _knob.val * 20;
+    grainSampler.grainSize = _knob.val + .01;
   }
 
   knob.two.action = (_knob) => {
@@ -175,15 +204,21 @@ function App() {
     
   }
 
+
   knob.three.action = (_knob) => {
-    
+    grainSampler.loopStart = _knob.val * 10;
   }
   
   knob.four.action = (_knob) => {
+    grainSampler.loopEnd = (_knob.val) + grainSampler.loopStart ;
+   
+  }
+
+  knob.five.action = (_knob) => {
     let logVal = Math.pow((_knob.val + .38) * 5.2, 5);
     filter.frequency.value = .1 +  logVal;
     console.log(logVal);
-   
+
   }
 
   const aClick = () => {
@@ -191,6 +226,7 @@ function App() {
   }
 
   const bClick = () => {
+  
     
   }
 
@@ -242,7 +278,7 @@ function App() {
         </div>
         
         <div>
-          {knobOne}{knobTwo}{knobThree}{knobFour}
+          {knobOne}{knobTwo}{knobThree}{knobFour}{knobFive}
         </div>
 
         <div>
