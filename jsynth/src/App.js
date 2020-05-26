@@ -20,7 +20,51 @@ export const knob = {
   five: {midi: 0, val: 0},
 }
 
+export const sample = {
+  loopStart: 0,
+  loopLength: 0,
+  loopEnd: function() {return (this.loopStart + this.loopLength) % buffer1.duration},
+  playbackRate: 0,
+}
 
+const button = {
+  start: "filter",
+}
+
+let noteArray =[
+  [1/3, true], [1/3, false], [1/2, false],
+  [1, true],[1, false],[2, true],[2, false], 
+  [3, false],[4, true],[4, false], 
+  [6, false],[8, true],[8, false], 
+  [12, false],[16, true],[16, false],
+  [32, true], [32, false]
+];
+
+const time ={
+  bpm: 124,
+  note: function(noteData) {
+    let note = noteData[0];
+    let dot = noteData[1];
+    let out = 60/this.bpm/note
+
+    let display = null
+    if (note >= 1) {
+      display = "1/" + note; 
+    }
+    else {
+      display = 1/note + "/" + 1;
+    }
+    if (dot) {
+      out += out/2;
+      display += "."
+    } 
+    
+    return {time: out, display: display};
+  },
+}
+// for (let note in noteArray){
+//   console.log(time.note(noteArray[note]))
+// }
 
 
 var styles = {
@@ -67,18 +111,20 @@ let filter = new Tone.Filter(
     gain : -12
     }
 )
-
+let fade = .5;
 const grainSampler = new Tone.GrainPlayer({ 
   url: buffer1 ,
   loop: true,
-  playbackRate : .1,
+  playbackRate : 1,
   grainSize: .1,
   overlap: 0,
   loopStart: 0,
-  loopEnd: 10,
+  loopEnd: 0,
   reverse: false,
   detune: 0, 
-  volume: -6 
+  volume: -6,
+  fadeIn: fade,
+  fadeOut: fade
 }) 
 
 // let vibrato = new Tone.Vibrato ({
@@ -144,8 +190,9 @@ function App() {
   const handleStart = () =>  {
     grainSampler.start();
     GrainBuffer = grainSampler.buffer.toArray(); 
+    
     setUpdateDom(updateDom + 1);
-    console.log(grainSampler.buffer.toArray());
+     (grainSampler.buffer.toArray());
   };
   
 
@@ -187,8 +234,12 @@ function App() {
   let knobFive = getKnob("gray", knob.five);
 
   knob.one.action = (_knob) => {
+    let adjValue = parseInt(_knob.val * (noteArray.length -1));
+    let note = noteArray[adjValue];
+    let noteLength = time.note(note).time;
+    let display = time.note(note).display;
     // grainSampler.playbackRate = _knob.val * 20;
-    grainSampler.grainSize = _knob.val + .01;
+    grainSampler.grainSize = noteLength * grainSampler.playbackRate;
   }
 
   knob.two.action = (_knob) => {
@@ -199,25 +250,41 @@ function App() {
     else {
       adjValue = parseInt(_knob.val * 30);
     }
-    console.log(adjValue);
+    console.log(grainSampler);
     grainSampler.overlap = adjValue;
     
   }
 
 
   knob.three.action = (_knob) => {
-    grainSampler.loopStart = _knob.val * 10;
+
+
+    
+    sample.loopStart = _knob.val * buffer1.duration;
+    grainSampler.loopStart = sample.loopStart;
+    // grainSampler.loopEnd = adjVal + (knob.four.val * buffer1.duration);
+    grainSampler.loopEnd = sample.loopEnd();
+    console.log("start " + grainSampler.loopStart + " end " +grainSampler.loopEnd);
+    // grainSampler.loopEnd = grainSampler.loopStart + .1;
   }
   
   knob.four.action = (_knob) => {
-    grainSampler.loopEnd = (_knob.val) + grainSampler.loopStart ;
-   
+    let adjValue = parseInt(_knob.val * (noteArray.length -1));
+    let note = noteArray[adjValue];
+    let noteLength = time.note(note).time;
+    let display = time.note(note).display;
+    sample.loopLength = noteLength * grainSampler.playbackRate;
+    console.log(display)
+
+    
+    grainSampler.loopEnd = sample.loopEnd();
+    console.log("start " + grainSampler.loopStart + " end " +grainSampler.loopEnd);
   }
 
   knob.five.action = (_knob) => {
     let logVal = Math.pow((_knob.val + .38) * 5.2, 5);
     filter.frequency.value = .1 +  logVal;
-    console.log(logVal);
+    
 
   }
 
@@ -242,23 +309,37 @@ function App() {
   }
 
   const leftPad = () => {
-    if (grainSampler.playbackRate >= 1 && grainSampler.reverse === false) {
+    if (grainSampler.playbackRate > 1 && grainSampler.reverse === false) {
       grainSampler.playbackRate -= 1; 
     }
-    else {
+    else if (grainSampler.playbackRate <= 1 && grainSampler.reverse === false) {
       grainSampler.reverse = true;
+    }
+    else {
       grainSampler.playbackRate += 1;
     } 
+ 
+    
+    //sets properites for the time based knobs that rely on playback rate
+    knob.one.action(knob.one);
+    knob.three.action(knob.three);
+    knob.four.action(knob.four);
   }
-  
+
   const rightPad = () => {
-    if (grainSampler.playbackRate >= 1 && grainSampler.reverse === true) {
+    if (grainSampler.playbackRate > 1 && grainSampler.reverse === true) {
       grainSampler.playbackRate -=1;
     }
-    else {
+    else if (grainSampler.playbackRate <= 1 && grainSampler.reverse === true) {
       grainSampler.reverse = false;
+    }
+    else {
       grainSampler.playbackRate += 1;
     }
+
+    knob.one.action(knob.one);
+    knob.three.action(knob.three);
+    knob.four.action(knob.four);
     
   }
 
