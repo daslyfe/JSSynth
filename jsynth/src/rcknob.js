@@ -6,7 +6,8 @@ function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'defau
 
 var React = require('react');
 var React__default = _interopDefault(React);
-
+let lastHeldValue = 0;
+let currentHeldValue = 0;
 function _defineProperty(obj, key, value) {
   if (key in obj) {
     Object.defineProperty(obj, key, {
@@ -23,6 +24,7 @@ function _defineProperty(obj, key, value) {
 }
 
 function _objectSpread(target) {
+
   for (var i = 1; i < arguments.length; i++) {
     var source = arguments[i] != null ? arguments[i] : {};
     var ownKeys = Object.keys(source);
@@ -119,6 +121,8 @@ var clamp = function clamp(min, max, value) {
   return Math.max(min, Math.min(max, value));
 };
 var caclulatePercentage = function caclulatePercentage(_ref) {
+
+  
   var startX = _ref.startX,
       startY = _ref.startY,
       pageX = _ref.pageX,
@@ -126,22 +130,28 @@ var caclulatePercentage = function caclulatePercentage(_ref) {
       // angleOffset = _ref.angleOffset,
       
       // angleRange = _ref.angleRange;
-      //console.log("angle offset " + angleOffset)
+
   var x = startX - pageX;
   var y = startY - pageY;
-  //console.log("x " + x + " y " + y)
+
   // var degree = Math.atan2(-y, -x) * 180 / Math.PI + 90 - angleOffset;
   // var angle = degree < 0 ? degree + 360 : degree % 360;
 
   // if (angle <= angleRange) {
-  let out = clamp(0, 1, y/100);
-    // let out = clamp(0, 1, angle / angleRange)
  
+
+    
+    
+  let out = clamp(0, 1, (y/100) + lastHeldValue) ;
+    // let out = clamp(0, 1, angle / angleRange)
+
+    console.log(_ref);
+
     return out;
   // } else {
   //   // let out = y/150;
   //   let out = +(angle - angleRange < (360 - angleRange) / 2)
-  //   console.log("out2 " + out);
+  //
   //   return out;
   // }
 };
@@ -227,7 +237,7 @@ var removeEventFromBody = function removeEventFromBody(name, fn) {
   return document.body.removeEventListener(name, fn);
 };
 
-var handleEventListener = function handleEventListener(_ref) {
+var handleEventListener = function handleEventListener(_ref, lastHeld) {
 
   var dispatch = _ref.dispatch,
       isActive = _ref.isActive;
@@ -243,8 +253,11 @@ var handleEventListener = function handleEventListener(_ref) {
     };
 
     var onStop = function onStop() {
+      
+      lastHeldValue = lastHeld;   
       return dispatch({
-        type: 'STOP'
+        type: 'STOP',
+        lastHeldValue: lastHeld 
       });
     };
 
@@ -256,6 +269,7 @@ var handleEventListener = function handleEventListener(_ref) {
         removeEventFromBody('mouseup', onStop);
       };
     }
+  
   };
 };
 
@@ -324,6 +338,7 @@ var reducer = function reducer(onChange) {
 };
 
 var useUpdate = (function (_ref3) {
+  console.log(_ref3)
   var min = _ref3.min,
       max = _ref3.max,
       initialValue = _ref3.initialValue,
@@ -358,10 +373,12 @@ var useUpdate = (function (_ref3) {
       isActive = _useReducer2$.isActive,
       dispatch = _useReducer2[1];
 
-  React.useEffect(handleEventListener({
+  React.useEffect(
+    handleEventListener({
     dispatch: dispatch,
     isActive: isActive
-  }), [isActive]);
+  }, percentage), [isActive]);
+ 
   return {
     svg: svg,
     container: container,
