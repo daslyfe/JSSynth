@@ -197,13 +197,14 @@ function App() {
     setUpdateDom(updateDom + 1);
     (grainSampler.buffer.toArray());
   };
-
+  
   let GetKnob = (color, name) => {
     return (
       <input key={color} style={{ display: 'inline-block' }} type="range" className="input-knob"
         data-bgcolor={color}
         data-fgcolor="black"
-        data-diameter="50"
+        // data-diameter="50"
+        data-diameter={parseInt(appStyles.canvasWidth/20)}
         min={0}
         max={127}
         name = {name} 

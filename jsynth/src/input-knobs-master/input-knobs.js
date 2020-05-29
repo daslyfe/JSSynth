@@ -2,7 +2,7 @@
 import {knob, appStyles} from "../App.js";
 import React from 'react';
 
-function BuildKnob()  {
+
 
   let op = window.inputKnobsOptions || {};
   
@@ -224,6 +224,7 @@ input[type=checkbox].input-switch:checked,input[type=radio].input-switch:checked
       
     };
     ik.pointerdown = (ev) => {
+      //this puts the box around the knob
       el.focus();
       if (ev.touches)
         ev = ev.touches[0];
@@ -374,7 +375,7 @@ input[type=checkbox].input-switch:checked,input[type=radio].input-switch:checked
 
 
 
-}
 
-window.addEventListener("load", BuildKnob);
+
+// window.addEventListener("load", BuildKnob);
 
