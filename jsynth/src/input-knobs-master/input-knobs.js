@@ -1,10 +1,9 @@
 
 import {knob, appStyles} from "../App.js";
+import React from 'react';
 
+function BuildKnob()  {
 
-
-window.addEventListener("load", () => {
-  console.log("event listner")
   let op = window.inputKnobsOptions || {};
   
   op.knobWidth = op.knobWidth || op.knobDiameter || 64;
@@ -105,7 +104,7 @@ input[type=checkbox].input-switch:checked,input[type=radio].input-switch:checked
       return;
     el.inputKnobs = {};
     el.refresh = () => {
-    
+      
       let src = el.getAttribute("data-src");
       d = +el.getAttribute("data-diameter");
       let st = document.defaultView.getComputedStyle(el, null);
@@ -129,17 +128,18 @@ input[type=checkbox].input-switch:checked,input[type=radio].input-switch:checked
     };
     el.refresh();
   };
-  let initKnobs = (el) => {
+  
+  let InitKnobs = (el) => {
+    
     let w, h, d, fg, bg;
     if (el.inputKnobs) {
       el.redraw();
       return;
     }
+
     let ik = el.inputKnobs = {};
        //this gets called when page is loaded
     el.refresh = () => {
-   
-     
       d = +el.getAttribute("data-diameter");
       let st = document.defaultView.getComputedStyle(el, null);
       w = parseFloat(el.getAttribute("data-width") || d || st.width);
@@ -195,15 +195,14 @@ input[type=checkbox].input-switch:checked,input[type=radio].input-switch:checked
       ik.valrange = { min: +el.min, max: (el.max == "") ? 100 : +el.max, step: (el.step == "") ? 1 : +el.step };
       el.redraw(true);
       let kName = el.getAttribute("name");
-      
-      // let action = () => console.log("heyyyy");
+      //set the knob action
       knob[kName.midi] = parseFloat(el.value)
       knob[kName.val] = knob[kName.midi]/el.max;
       el.oninput = knob[kName].action;
-      // el.onchange = () => {console.log("yoo")}
 
      
     };
+
     el.setValue = (v) => {
       v = (Math.round((v - ik.valrange.min) / ik.valrange.step)) * ik.valrange.step + ik.valrange.min;
       if (v < ik.valrange.min) v = ik.valrange.min;
@@ -218,7 +217,6 @@ input[type=checkbox].input-switch:checked,input[type=radio].input-switch:checked
         el.dispatchEvent(event);
         ik.oldvalue = el.value;
       }
-      //el.onChange = () => console.log("changed");
       //this is where the value is set
       knob[el.name].val = parseFloat(el.value)/parseFloat(el.max);
       knob[el.name].midi = knob[el.name].val * 127;
@@ -254,6 +252,7 @@ input[type=checkbox].input-switch:checked,input[type=radio].input-switch:checked
       ev.stopPropagation();
     };
     ik.pointermove = (ev) => {
+      
       let dv;
       let rc = el.getBoundingClientRect();
       let cx = (rc.left + rc.right) * 0.5, cy = (rc.top + rc.bottom) * 0.5;
@@ -341,17 +340,22 @@ input[type=checkbox].input-switch:checked,input[type=radio].input-switch:checked
         ik.valueold = el.value;
       }
     };
+    
     el.refresh();
     el.redraw(true);
     el.addEventListener("keydown", ik.keydown);
     el.addEventListener("mousedown", ik.pointerdown);
     el.addEventListener("touchstart", ik.pointerdown);
     el.addEventListener("wheel", ik.wheel);
+    //run refresh when window is resized
+    window.addEventListener("resize",() => el.refresh());
+
   }
+  
   let refreshque = () => {
     let elem = document.querySelectorAll("input.input-knob,input.input-slider");
     for (let i = 0; i < elem.length; ++i)
-      procque.push([initKnobs, elem[i]]);
+      procque.push([InitKnobs, elem[i]]);
     elem = document.querySelectorAll("input[type=checkbox].input-switch,input[type=radio].input-switch");
     for (let i = 0; i < elem.length; ++i) {
       procque.push([initSwitches, elem[i]]);
@@ -367,4 +371,10 @@ input[type=checkbox].input-switch:checked,input[type=radio].input-switch:checked
     if (procque.length <= 0)
       refreshque();
   }, 50);
-});
+
+
+
+}
+
+window.addEventListener("load", BuildKnob);
+

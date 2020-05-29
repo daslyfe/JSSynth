@@ -164,15 +164,15 @@ function App() {
 
 
 
-  console.log(appStyles.canvasWidth);
 
   //const grainSampler = useRef(null);
   const [updateDom, setUpdateDom] = useState(0);
-
+  let topKnobs = [];
   let SomeGraph = [];
   useEffect(() => {
     window.addEventListener("resize", updateWidthAndHeight);
 
+  
     // grainSampler = new Tone.GrainPlayer({ 
     //   url: buffer1 ,
     //   loop: true,
@@ -185,7 +185,7 @@ function App() {
     // }, ).toMaster(); 
     return () => window.removeEventListener("resize", updateWidthAndHeight);
   }, []);
-
+  
 
 
   // },[]);
@@ -198,65 +198,32 @@ function App() {
     (grainSampler.buffer.toArray());
   };
 
-
-  // let GetKnob = (color, _knob) => {  
-  //   return (
-  //   <div style = {{display: 'inline-block'}}>
-  //   <Knob 
-  //     size={40}  
-  //     angleOffset={220} 
-  //     angleRange={280}
-  //     min={0}
-  //     max={127}
-  //     onChange={(e) => {_knob.midi = e; _knob.val = e/127; _knob.action(_knob);}}
-  //     >
-  //     <Arc 
-  //       arcWidth={10}
-  //       color={color}
-  //       radius={15} 
-  //     />
-  //     {/* <Pointer 
-  //       width={5}
-  //       radius={10}
-  //       type="circle"
-  //       color="blue"
-  //     /> */}
-  //     <Value 
-  //       marginBottom={0} 
-  //       className="value" 
-  //     />
-  //     </Knob>
-  //     </div>
-  //     )
-  // }
-
   let GetKnob = (color, name) => {
-
     return (
-      
       <input key={color} style={{ display: 'inline-block' }} type="range" className="input-knob"
         data-bgcolor={color}
         data-fgcolor="black"
-        data-diameter="44"
+        data-diameter="50"
         min={0}
         max={127}
         name = {name} 
       />
-      
     )
   }
-
-  let knobOne = GetKnob("#7AB2E3", "one");
-  let knobTwo = GetKnob("#61CD77", "two");
-  let knobThree = GetKnob("#50506A", "three");
-  let knobFour = GetKnob("#FE6D2C", "four");
-  let knobFive = GetKnob("gray", "five");
-
-
+  topKnobs.push(GetKnob("#7AB2E3", "one"));
+  topKnobs.push(GetKnob("#61CD77", "two"))
+  topKnobs.push(GetKnob("#50506A", "three"))
+  topKnobs.push(GetKnob("#FE6D2C", "four"))
+  topKnobs.push(GetKnob("gray", "five"))
+  // let knobOne = GetKnob("#7AB2E3", "one");
+  // let knobTwo = GetKnob("#61CD77", "two");
+  // let knobThree = GetKnob("#50506A", "three");
+  // let knobFour = GetKnob("#FE6D2C", "four");
+  // let knobFive = GetKnob("gray", "five");
 
   knob.one.action = () => {
     let _knob = knob.one;
-    console.log("knoboneaction")
+  
     let adjValue = parseInt(_knob.val * (noteArray.length - 1));
     let note = noteArray[adjValue];
     let noteLength = time.note(note).time;
@@ -274,16 +241,13 @@ function App() {
     else {
       adjValue = parseInt(_knob.val * 30);
     }
-    console.log(grainSampler);
+   
     grainSampler.overlap = adjValue;
-
   }
 
 
   knob.three.action = () => {
-
     let _knob = knob.three;
-
     sample.loopStart = _knob.val * buffer1.duration;
     grainSampler.loopStart = sample.loopStart;
     // grainSampler.loopEnd = adjVal + (knob.four.val * buffer1.duration);
@@ -300,16 +264,14 @@ function App() {
     let display = time.note(note).display;
     sample.loopLength = noteLength * grainSampler.playbackRate;
     console.log(display)
-
-
     grainSampler.loopEnd = sample.loopEnd();
-    console.log("start " + grainSampler.loopStart + " end " + grainSampler.loopEnd);
+    // console.log("start " + grainSampler.loopStart + " end " + grainSampler.loopEnd);
   }
 
   knob.five.action = () => {
     
     let _knob = knob.five;
-    console.log(_knob)
+  
     let logVal = Math.pow((_knob.val + .38) * 5.2, 5);
     filter.frequency.value = .1 + logVal;
 
@@ -388,7 +350,7 @@ function App() {
         </div>
 
         <div>
-          {knobOne}{knobTwo}{knobThree}{knobFour}{knobFive}
+          {topKnobs}
         </div>
        
         <div>
