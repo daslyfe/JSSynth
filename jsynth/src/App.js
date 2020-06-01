@@ -3,14 +3,40 @@ import Tone from "tone";
 import C1 from "./samples/p.wav";
 import nasa from "./samples/nasa.wav";
 import "./input-knobs-master/input-knobs.js"
+import GrainboiBG from "./SVG/GrainboiBG.svg"
 
 import './App.css';
 import { Knob, Pointer, Value, Arc } from './rcknob';
 //import AudioGraph from "./graph.js"
 import FlexGraph, { DrawShapesGraph, LineMarkGraph } from "./flexgraph.js"
+import AudioPlayer from "./audioFile.js"
+let modes = ["default", "file"];
+let effects = ["filter", "delay"];
+let selectedCount = 0;
 
+let selectMode = () => {
+  let mode;
+  if (selectedCount < modes.length) {
+    mode = modes[selectedCount];
+  }
+  else {
+    selectedCount = 0;
+    mode = modes[selectedCount];
+  }
+  selectedCount++;
+  return mode;
+}
+let selEffect = 0;
+
+// function(sel) {for (let i = 1; i < this.length; i++) {console.log("ran"); i === sel ? this.sel = true : this.sel = false; }},
+
+let sound = [];
+let activeBuffer = new Tone.Buffer(C1);
 var buffer1 = new Tone.Buffer(C1);
 var buffer2 = new Tone.Buffer(nasa);
+let selectedFile = 0;
+
+
 export var GrainBuffer = null;
 
 export const knob = {
@@ -19,8 +45,6 @@ export const knob = {
   three: { midi: 0, val: 0 },
   four: { midi: 0, val: 0 },
   five: { midi: 0, val: 0 },
-  
-
 }
 
 export const sample = {
@@ -76,28 +100,13 @@ export const appStyles = {
   gameHeight: function () { return this.canvasWidth / 2 },
   gameWidth: function () { return this.canvasWidth / 3.37 },
   screenBGColor: "#B8C0AB",
-  gameColor: "#F2F2F2"
+  gameColor: "#F2F2F2",
+  clearColor: ""
 }
 
-function gameX(num) {
-  let mult = appStyles.gameWidth() / 100;
-  return num * mult;
-}
 
-function gameY(num) {
-  let mult = appStyles.gameHeight() / 100;
-  return num * mult;
-}
 
-function drawX(num) {
-  let mult = appStyles.canvasWidth / 100;
-  return num * mult;
-}
 
-function drawY(num) {
-  let mult = appStyles.canvasHeight / 100;
-  return num * mult;
-}
 
 const limiter = new Tone.Limiter(-6)
 
@@ -114,9 +123,11 @@ let filter = new Tone.Filter(
     gain: -12
   }
 )
+
+
 let fade = .5;
 const grainSampler = new Tone.GrainPlayer({
-  url: buffer1,
+  url: new Tone.Buffer(C1),
   loop: true,
   playbackRate: 1,
   grainSize: .1,
@@ -146,15 +157,39 @@ filter.connect(limiter);
 limiter.connect(Tone.Master);
 
 
+function AddFile() {
+  let audioRef = React.createRef();
+  function setAudio(files) {
+      let file;   
+      for (let i = 0; i < files.length; i++){     
+        file = URL.createObjectURL(files[i]);
+        let soundInfo = {name: files[0].name, path: file}
+        sound.push(soundInfo);
+      }
+      selectedFile = sound[sound.length -1];
+      activeBuffer = new Tone.Buffer(selectedFile.path);
+      grainSampler.buffer = activeBuffer; 
+  } 
+  return (
+      <div>
+          <input ref ={audioRef} id="audio_file" type="file" multiple accept="audio/*" onChange={() => setAudio(audioRef.current.files)} />
+      </div>
+  )
+}
 
 
 
-let screen = (display) => <div style={{ display: 'inline-block', marginLeft: gameX(9), marginTop: gameY(8), height: gameY(36), width: gameX(82), borderRadius: gameX(2), background: appStyles.screenBGColor }}>{display}</div>
 
+
+let bg = () => {
+  return 
+}
 
 function App() {
+  const [mode, setMode] = React.useState("init");
   const [width, setWidth] = React.useState(appStyles.canvasWidth);
   const [height, setHeight] = React.useState(appStyles.canvasHeight);
+  // const [buffer, setBuffer] = React.useState(new Tone.Buffer(sound[0].path))
   const updateWidthAndHeight = () => {
     appStyles.canvasWidth = window.innerWidth;
     appStyles.canvasHeight = window.innerHeight;
@@ -163,7 +198,36 @@ function App() {
   };
 
 
+  function gameX(num) {
+    let mult = appStyles.gameWidth() / 100;
+    return num * mult;
+  }
+  
+  function gameY(num) {
+    let mult = appStyles.gameHeight() / 100;
+    return num * mult;
+  }
+  
+  function drawX(num) {
+    let mult = appStyles.canvasWidth / 100;
+    return num * mult;
+  }
+  
+  function drawY(num) {
+    let mult = appStyles.canvasHeight / 100;
+    return num * mult;
+  }
+  let screen = (display) => <div style={{ display: 'inline-block', marginLeft: gameX(11), marginTop: gameY(10.1), height: gameY(32.5), width: gameX(78), borderRadius: gameX(2), background: appStyles.clearColor }}>{display}</div>
 
+  const jsx = {
+    knobBar: {
+      position: "relative",
+      width: gameX(88),
+      left: gameX(6),
+      background: appStyles.clearColor,
+      height: gameY(10),
+    }
+  }
 
   //const grainSampler = useRef(null);
   const [updateDom, setUpdateDom] = useState(0);
@@ -200,11 +264,11 @@ function App() {
   
   let GetKnob = (color, name) => {
     return (
-      <input key={color} style={{ display: 'inline-block' }} type="range" className="input-knob"
+      <input key={color} style={{ display: 'inline-block', marginTop: gameY(1), marginLeft: gameX(6) }} type="range" className="input-knob"
         data-bgcolor={color}
         data-fgcolor="black"
         // data-diameter="50"
-        data-diameter={parseInt(appStyles.canvasWidth/20)}
+        data-diameter={parseInt(appStyles.canvasWidth/24)}
         min={0}
         max={127}
         name = {name} 
@@ -215,7 +279,7 @@ function App() {
   topKnobs.push(GetKnob("#61CD77", "two"))
   topKnobs.push(GetKnob("#50506A", "three"))
   topKnobs.push(GetKnob("#FE6D2C", "four"))
-  topKnobs.push(GetKnob("gray", "five"))
+  //topKnobs.push(GetKnob("gray", "five"))
   // let knobOne = GetKnob("#7AB2E3", "one");
   // let knobTwo = GetKnob("#61CD77", "two");
   // let knobThree = GetKnob("#50506A", "three");
@@ -298,18 +362,23 @@ function App() {
   const downPad = () => {
     grainSampler.detune -= 100;
   }
+  let playBackStep = .5;
+
 
   const leftPad = () => {
-    if (grainSampler.playbackRate > 1 && grainSampler.reverse === false) {
-      grainSampler.playbackRate -= 1;
+    
+    if (grainSampler.playbackRate > playBackStep && grainSampler.reverse === false) {
+    
+      grainSampler.playbackRate -= playBackStep;
     }
-    else if (grainSampler.playbackRate <= 1 && grainSampler.reverse === false) {
+    else if (grainSampler.playbackRate <= playBackStep && grainSampler.reverse === false) {
       grainSampler.reverse = true;
     }
     else {
-      grainSampler.playbackRate += 1;
+      grainSampler.playbackRate += playBackStep;
     }
-
+    console.log(grainSampler.playbackRate)
+    console.log(grainSampler.reverse)
 
     //sets properites for the time based knobs that rely on playback rate
     knob.one.action(knob.one);
@@ -318,16 +387,17 @@ function App() {
   }
 
   const rightPad = () => {
-    if (grainSampler.playbackRate > 1 && grainSampler.reverse === true) {
-      grainSampler.playbackRate -= 1;
+    if (grainSampler.playbackRate > playBackStep && grainSampler.reverse === true) {
+      grainSampler.playbackRate -= playBackStep;
     }
-    else if (grainSampler.playbackRate <= 1 && grainSampler.reverse === true) {
+    else if (grainSampler.playbackRate <= playBackStep && grainSampler.reverse === true) {
       grainSampler.reverse = false;
     }
     else {
-      grainSampler.playbackRate += 1;
+      grainSampler.playbackRate += playBackStep;
     }
-
+    console.log(grainSampler.playbackRate)
+    console.log(grainSampler.reverse)
     knob.one.action(knob.one);
     knob.three.action(knob.three);
     knob.four.action(knob.four);
@@ -335,7 +405,7 @@ function App() {
   }
 
   const selClick = () => {
-
+    setMode(selectMode());
   }
 
   const startClick = () => {
@@ -344,16 +414,20 @@ function App() {
   
 
   return (
-    <div>
-      <div style={{ borderRadius: gameX(4), marginLeft: 100, marginTop: 20, width: appStyles.gameWidth(), height: appStyles.gameHeight(), background: appStyles.gameColor }}>
+    <div onDragOver={(ev)=> ev.preventDefault()}>
+      {AddFile()}
+
+      <div style={{ borderRadius: gameX(4), marginLeft: 100, marginTop: 20, width: appStyles.gameWidth(), height: appStyles.gameHeight()}}>
+      <img src ={GrainboiBG} alt ="gboibg" style={{position: "absolute", zIndex: -5,  width: appStyles.gameWidth()}}/>
+
         <div>
           {screen()}
         </div>
 
-        <div>
+        <div style={jsx.knobBar}>
           {topKnobs}
         </div>
-       
+      
         <div>
           <button onMouseDown={aClick}>A</button>
           <button onMouseDown={bClick}>B</button>
@@ -372,6 +446,8 @@ function App() {
 
       </div>
       <button onMouseDown={handleStart}>play</button>
+      
+
     </div>
   );
 };
