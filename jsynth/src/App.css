@@ -23,7 +23,162 @@
   font-size: calc(10px + 2vmin);
   color: white;
 }
+.grainboi{
+ 
+  padding: 0;
+  margin-left: 100px;  
+  background-image: url("./assets/4x/Grainboi.png"); 
+  background-repeat: no-repeat;
+  background-size: cover;
+  margin-top: 20px; 
+}
+.display{
+  position: relative;
+ 
+  padding: 0;
+  width: 78%;
+  height: 32.5%; 
+  margin:0 auto;
+  top: 10%;
+ 
+}
 
+.knob-bar{
+ 
+    position: "relative";
+    width: 78%;
+   
+    padding: 0px;
+    height: 10%;
+    margin: 0 auto;
+    margin-top: 18%;
+ 
+  
+}
+.button-area {
+  position: relative;
+  height: 47%;
+  bottom: 0%;
+  
+  
+}
+.btn-circle{
+
+  position: absolute;
+  background-color: "black";
+  /* border-radius: 50%; */
+  right: 23.8%;
+  top: 33%;
+  width: 14%;
+  /* padding: 0; */
+  padding-bottom: 14%; 
+}
+.a-button{
+  outline: none;
+  position: absolute;
+  border: none;
+  background-image: url("./assets/4x/a.png");
+  border-radius: 50%;
+  
+  right: 8.7%;
+  top: 21%;
+  width: 12%;
+  padding: 0;
+  padding-bottom: 12%;
+  background-size: contain;
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+.a-button:active {
+  top: 21.5%;
+  width: 11.9%; right: 8.8%;
+  padding-bottom: 11.9%;
+  opacity: .9;
+}
+
+.b-button{ 
+  outline: none;
+  position: absolute;
+  border: none;
+  background-image: url("./assets/4x/b.png");
+
+  border-radius: 50%;
+  right: 23.8%;
+  top: 33%;
+  width: 12%;
+  padding: 0;
+  padding-bottom: 12%;
+  background-size: contain;
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+.b-button:active {
+  top: 33.5%;
+  width: 11.9%; right: 23.9%;
+  padding-bottom: 11.9%;
+  opacity: .9;
+}
+.sel-button{ 
+  cursor: pointer;
+  outline: none;
+  position: absolute;
+  border: none;
+  background-image: url("./assets/4x/sel.png");
+
+  border-radius: 30%;
+  bottom: 25%;
+  width: 13%;
+  padding: 0;
+  padding-bottom: 6%;
+  background-size: cover;
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+.sel-button:active {
+
+  opacity: .9;
+  bottom: 24.4%;
+
+}
+.dPad{
+
+  position: absolute;
+  /* background-image: url("./assets/4x/dBack.png");
+  background-size: cover;
+  background-repeat: no-repeat; */
+  width: 22%;
+  left: 9.9%;
+  top: 21%;
+  padding: 0;
+  padding-bottom: 22%;
+
+}
+
+
+
+.d-btn{
+  cursor: pointer;
+  outline: none;
+  position: absolute;
+  border: none;
+  background-color: transparent;
+  opacity: .2;
+  width: 34%;
+  
+  height: 33%;
+  padding: 0;
+  padding-bottom: 8%;
+
+}
+
+.d-btn:active{
+  background-color: white;
+  opacity: .2;
+}
+.grain-bg {
+  position: absolute; 
+  z-index: -5;  
+}
 .App-link {
   color: #61dafb;
 }

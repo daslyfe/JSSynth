@@ -69,8 +69,8 @@ input[type=checkbox].input-switch:checked,input[type=radio].input-switch:checked
   let makeKnobFrames = (fr, fg, bg) => {
     let r =
       `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="64" height="${fr * 64}" viewBox="0 0 64 ${fr * 64}" preserveAspectRatio="none">
-<defs><g id="K"><circle cx="32" cy="32" r="30" fill="${bg}"/>
-<line x1="32" y1="28" x2="32" y2="7" stroke-linecap="round" stroke-width="6" stroke="${fg}"/></g></defs>
+<defs><g id="K"><circle cx="32" cy="32" r="30" fill="${bg}" />
+<line x1="32" y1="14" x2="32" y2="14" stroke-linecap="round" stroke-width="14" stroke="${fg}"/></g></defs>
 <use xlink:href="#K" transform="rotate(-135,32,32)"/>`;
     for (let i = 1; i < fr; ++i)
       r += `<use xlink:href="#K" transform="translate(0,${64 * i}) rotate(${-135 + 270 * i / fr},32,32)"/>`;

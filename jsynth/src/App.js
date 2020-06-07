@@ -3,7 +3,7 @@ import Tone from "tone";
 import C1 from "./samples/p.wav";
 import nasa from "./samples/nasa.wav";
 import "./input-knobs-master/input-knobs.js"
-import GrainboiBG from "./SVG/GrainboiBG.svg"
+import {img} from "./images"
 
 import './App.css';
 import { Knob, Pointer, Value, Arc } from './rcknob';
@@ -94,17 +94,37 @@ const time = {
 // }
 
 
+
+
 export const appStyles = {
   canvasWidth: window.innerWidth,
   canvasHeight: window.innerHeight,
-  gameHeight: function () { return this.canvasWidth / 2 },
-  gameWidth: function () { return this.canvasWidth / 3.37 },
+  gameHeight: function () { return this.canvasHeight / 1 },
+  gameWidth: function () { return this.gameHeight()/1.685},
   screenBGColor: "#B8C0AB",
   gameColor: "#F2F2F2",
   clearColor: ""
 }
 
+function gameX(num) {
+  let mult = appStyles.gameWidth() / 100;
+  return num * mult;
+}
 
+function gameY(num) {
+  let mult = appStyles.gameHeight() / 100;
+  return num * mult;
+}
+
+function drawX(num) {
+  let mult = appStyles.canvasWidth / 100;
+  return num * mult;
+}
+
+function drawY(num) {
+  let mult = appStyles.canvasHeight / 100;
+  return num * mult;
+}
 
 
 
@@ -181,14 +201,15 @@ function AddFile() {
 
 
 
-let bg = () => {
-  return 
-}
+
+
 
 function App() {
   const [mode, setMode] = React.useState("init");
   const [width, setWidth] = React.useState(appStyles.canvasWidth);
   const [height, setHeight] = React.useState(appStyles.canvasHeight);
+  const [Display, setDisplay] = React.useState(<div>test</div>);
+  const [dPad, setDPad] = React.useState(img.btn.dPad);
   // const [buffer, setBuffer] = React.useState(new Tone.Buffer(sound[0].path))
   const updateWidthAndHeight = () => {
     appStyles.canvasWidth = window.innerWidth;
@@ -198,61 +219,16 @@ function App() {
   };
 
 
-  function gameX(num) {
-    let mult = appStyles.gameWidth() / 100;
-    return num * mult;
-  }
-  
-  function gameY(num) {
-    let mult = appStyles.gameHeight() / 100;
-    return num * mult;
-  }
-  
-  function drawX(num) {
-    let mult = appStyles.canvasWidth / 100;
-    return num * mult;
-  }
-  
-  function drawY(num) {
-    let mult = appStyles.canvasHeight / 100;
-    return num * mult;
-  }
-  let screen = (display) => <div style={{ display: 'inline-block', marginLeft: gameX(11), marginTop: gameY(10.1), height: gameY(32.5), width: gameX(78), borderRadius: gameX(2), background: appStyles.clearColor }}>{display}</div>
 
-  const jsx = {
-    knobBar: {
-      position: "relative",
-      width: gameX(88),
-      left: gameX(6),
-      background: appStyles.clearColor,
-      height: gameY(10),
-    }
-  }
+  let screen = (display) => <div className="display">{display}</div>
 
-  //const grainSampler = useRef(null);
+
   const [updateDom, setUpdateDom] = useState(0);
   let topKnobs = [];
   let SomeGraph = [];
   useEffect(() => {
-    window.addEventListener("resize", updateWidthAndHeight);
-
-  
-    // grainSampler = new Tone.GrainPlayer({ 
-    //   url: buffer1 ,
-    //   loop: true,
-    //   playbackRate : .1,
-    //   grainSize: 1,
-    //   overlap: 0,
-    //   loopStart: 0,
-    //   loopEnd: 10,
-    //   reverse: true  
-    // }, ).toMaster(); 
-    return () => window.removeEventListener("resize", updateWidthAndHeight);
+    // window.addEventListener("resize", updateWidthAndHeight);
   }, []);
-  
-
-
-  // },[]);
 
   const handleStart = () => {
     grainSampler.start();
@@ -262,23 +238,22 @@ function App() {
     (grainSampler.buffer.toArray());
   };
   
-  let GetKnob = (color, name) => {
+  let GetKnob = (color, dotColor, name) => {
     return (
-      <input key={color} style={{ display: 'inline-block', marginTop: gameY(1), marginLeft: gameX(6) }} type="range" className="input-knob"
+      <input key={color} style={{ padding: 0, display: 'inline-block', marginLeft: "5%"}} type="range" className="input-knob"
         data-bgcolor={color}
-        data-fgcolor="black"
-        // data-diameter="50"
-        data-diameter={parseInt(appStyles.canvasWidth/24)}
+        data-fgcolor={dotColor}
+        data-diameter={parseInt(appStyles.gameWidth()/7)}
         min={0}
         max={127}
         name = {name} 
       />
     )
   }
-  topKnobs.push(GetKnob("#7AB2E3", "one"));
-  topKnobs.push(GetKnob("#61CD77", "two"))
-  topKnobs.push(GetKnob("#50506A", "three"))
-  topKnobs.push(GetKnob("#FE6D2C", "four"))
+  topKnobs.push(GetKnob("#7AB2E3", "#0071BC", "one"));
+  topKnobs.push(GetKnob("#61CD77", "#009245", "two"))
+  topKnobs.push(GetKnob("#FFFEFF", "#CCCCCC", "three"))
+  topKnobs.push(GetKnob("#FE6D2C", "#BD5226", "four"))
   //topKnobs.push(GetKnob("gray", "five"))
   // let knobOne = GetKnob("#7AB2E3", "one");
   // let knobTwo = GetKnob("#61CD77", "two");
@@ -356,11 +331,16 @@ function App() {
   const upPad = () => {
 
     grainSampler.detune += 100;
+    setDPad(img.btn.dUp);
+    
 
   }
 
   const downPad = () => {
     grainSampler.detune -= 100;
+    grainSampler.detune += 100;
+    setDPad(img.btn.dDown);
+    
   }
   let playBackStep = .5;
 
@@ -384,6 +364,7 @@ function App() {
     knob.one.action(knob.one);
     knob.three.action(knob.three);
     knob.four.action(knob.four);
+    setDPad(img.btn.dLeft);
   }
 
   const rightPad = () => {
@@ -401,6 +382,7 @@ function App() {
     knob.one.action(knob.one);
     knob.three.action(knob.three);
     knob.four.action(knob.four);
+    setDPad(img.btn.dRight);
 
   }
 
@@ -412,37 +394,37 @@ function App() {
 
   }
   
-
+  console.log(img.btn.dPad);
   return (
-    <div onDragOver={(ev)=> ev.preventDefault()}>
+    <div>
+              
       {AddFile()}
+      <div className="grainboi" style={{ position: "absolute",  width: appStyles.gameWidth(), height: appStyles.gameHeight()}}>
 
-      <div style={{ borderRadius: gameX(4), marginLeft: 100, marginTop: 20, width: appStyles.gameWidth(), height: appStyles.gameHeight()}}>
-      <img src ={GrainboiBG} alt ="gboibg" style={{position: "absolute", zIndex: -5,  width: appStyles.gameWidth()}}/>
-
-        <div>
-          {screen()}
-        </div>
-
-        <div style={jsx.knobBar}>
+        
+        <div className="display">{Display}</div>
+        
+        <div className="knob-bar">
           {topKnobs}
         </div>
       
-        <div>
-          <button onMouseDown={aClick}>A</button>
-          <button onMouseDown={bClick}>B</button>
+        <div className="button-area">
+          <button className="a-button" onMouseDown={aClick}></button>
+          <div className="btn-circle">wwewe</div>
+          <button className="b-button" onMouseDown={bClick}></button>
+          <div className="dPad">
+          <img src={img.btn.dBack} style={{position: "absolute", width: "105%", right: "-2%"}}></img>
+            <img src={dPad} style={{position: "absolute", width: "100%"}}></img>
+            
+            <button className="d-btn" style={{left: "33%"}}onMouseDown={upPad} onMouseUp={()=>setDPad(img.btn.dPad)}></button>
+            <button className="d-btn" style={{bottom: 0, left: "33%"}} onMouseDown={downPad} onMouseUp={()=>setDPad(img.btn.dPad)}></button>
+            <button className="d-btn" style={{bottom: "33%", left: 0}} onMouseDown={leftPad} onMouseUp={()=>setDPad(img.btn.dPad)}></button>
+            <button className="d-btn" style={{bottom: "33%", right: 0}} onMouseDown={rightPad} onMouseUp={()=>setDPad(img.btn.dPad)}></button>
+          </div>
+  
+          <button className="sel-button" style={{left: "33%"}} onMouseDown={selClick}></button>
+          <button className="sel-button" style={{right: "33%"}} onMouseDown={startClick}></button>
         </div>
-        <div>
-          <button onMouseDown={upPad}>up</button>
-          <button onMouseDown={downPad}>dwn</button>
-          <button onMouseDown={leftPad}>left</button>
-          <button onMouseDown={rightPad}>rite</button>
-        </div>
-        <div>
-          <button onMouseDown={selClick}>select</button>
-          <button onMouseDown={startClick}>start</button>
-        </div>
-
 
       </div>
       <button onMouseDown={handleStart}>play</button>
