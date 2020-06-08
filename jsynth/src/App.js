@@ -1,39 +1,32 @@
 import React, { useEffect, useState, useRef, Component } from 'react';
 import Tone from "tone";
 import C1 from "./samples/p.wav";
-import nasa from "./samples/nasa.wav";
+
 import "./input-knobs-master/input-knobs.js"
 import {img} from "./images"
 
 import './App.css';
-import { Knob, Pointer, Value, Arc } from './rcknob';
+
 //import AudioGraph from "./graph.js"
 import FlexGraph, { DrawShapesGraph, LineMarkGraph } from "./flexgraph.js"
-import AudioPlayer from "./audioFile.js"
-let modes = ["default", "file"];
-let effects = ["filter", "delay"];
-let selectedCount = 0;
 
-let selectMode = () => {
-  let mode;
-  if (selectedCount < modes.length) {
-    mode = modes[selectedCount];
-  }
-  else {
-    selectedCount = 0;
-    mode = modes[selectedCount];
-  }
-  selectedCount++;
-  return mode;
-}
-let selEffect = 0;
 
 // function(sel) {for (let i = 1; i < this.length; i++) {console.log("ran"); i === sel ? this.sel = true : this.sel = false; }},
-
-let sound = [];
 let activeBuffer = new Tone.Buffer(C1);
-var buffer1 = new Tone.Buffer(C1);
-var buffer2 = new Tone.Buffer(nasa);
+// let sound = [];
+let sound = {
+  files: [],
+  selected: 0,
+  next: function() {
+    this.selected = (this.selected + 1) % this.files.length;
+    return this.files[this.selected].path;
+  },
+  prev: function() {
+    this.selected = (this.selected - 1) % this.files.length;
+    return this.files[this.selected].path;
+  }
+}
+
 let selectedFile = 0;
 
 
@@ -50,13 +43,11 @@ export const knob = {
 export const sample = {
   loopStart: 0,
   loopLength: 0,
-  loopEnd: function () { return (this.loopStart + this.loopLength) % buffer1.duration },
+  loopEnd: function () { return (this.loopStart + this.loopLength) % activeBuffer.duration },
   playbackRate: 0,
 }
 
-const button = {
-  start: "filter",
-}
+
 
 let noteArray = [
   [1 / 3, true], [1 / 3, false], [1 / 2, false],
@@ -89,12 +80,6 @@ const time = {
     return { time: out, display: display };
   },
 }
-// for (let note in noteArray){
-//   console.log(time.note(noteArray[note]))
-// }
-
-
-
 
 export const appStyles = {
   canvasWidth: window.innerWidth,
@@ -147,7 +132,7 @@ let filter = new Tone.Filter(
 
 let fade = .5;
 const grainSampler = new Tone.GrainPlayer({
-  url: new Tone.Buffer(C1),
+  url: activeBuffer,
   loop: true,
   playbackRate: 1,
   grainSize: .1,
@@ -177,16 +162,18 @@ filter.connect(limiter);
 limiter.connect(Tone.Master);
 
 
+
 function AddFile() {
   let audioRef = React.createRef();
   function setAudio(files) {
       let file;   
       for (let i = 0; i < files.length; i++){     
         file = URL.createObjectURL(files[i]);
-        let soundInfo = {name: files[0].name, path: file}
-        sound.push(soundInfo);
+        let soundInfo = {name: files[i].name, path: file}
+        sound.files.push(soundInfo);
       }
-      selectedFile = sound[sound.length -1];
+      console.log(sound)
+      selectedFile = sound.files[sound.files.length -1];
       activeBuffer = new Tone.Buffer(selectedFile.path);
       grainSampler.buffer = activeBuffer; 
   } 
@@ -198,17 +185,24 @@ function AddFile() {
 }
 
 
-
-
+const screen = {
+  mode: ["default", "selectAudio"],
+  selected: 0,
+  next: function () {
+    this.selected = (this.selected + 1) % this.mode.length;
+    return this.mode[this.selected];
+    }
+}
 
 
 
 
 function App() {
-  const [mode, setMode] = React.useState("init");
+  const [mode, setMode] = React.useState("default");
   const [width, setWidth] = React.useState(appStyles.canvasWidth);
   const [height, setHeight] = React.useState(appStyles.canvasHeight);
-  const [Display, setDisplay] = React.useState(<div>test</div>);
+
+  const [Display, setDisplay] = React.useState(<x-p1>Wiweeeeeeeeeeeeesdddddddddddddddde</x-p1>);
   const [dPad, setDPad] = React.useState(img.btn.dPad);
   // const [buffer, setBuffer] = React.useState(new Tone.Buffer(sound[0].path))
   const updateWidthAndHeight = () => {
@@ -220,12 +214,11 @@ function App() {
 
 
 
-  let screen = (display) => <div className="display">{display}</div>
 
 
-  const [updateDom, setUpdateDom] = useState(0);
+
   let topKnobs = [];
-  let SomeGraph = [];
+
   useEffect(() => {
     // window.addEventListener("resize", updateWidthAndHeight);
   }, []);
@@ -234,7 +227,7 @@ function App() {
     grainSampler.start();
     GrainBuffer = grainSampler.buffer.toArray();
 
-    setUpdateDom(updateDom + 1);
+
     (grainSampler.buffer.toArray());
   };
   
@@ -255,11 +248,7 @@ function App() {
   topKnobs.push(GetKnob("#FFFEFF", "#CCCCCC", "three"))
   topKnobs.push(GetKnob("#FE6D2C", "#BD5226", "four"))
   //topKnobs.push(GetKnob("gray", "five"))
-  // let knobOne = GetKnob("#7AB2E3", "one");
-  // let knobTwo = GetKnob("#61CD77", "two");
-  // let knobThree = GetKnob("#50506A", "three");
-  // let knobFour = GetKnob("#FE6D2C", "four");
-  // let knobFive = GetKnob("gray", "five");
+
 
   knob.one.action = () => {
     let _knob = knob.one;
@@ -288,7 +277,7 @@ function App() {
 
   knob.three.action = () => {
     let _knob = knob.three;
-    sample.loopStart = _knob.val * buffer1.duration;
+    sample.loopStart = _knob.val * activeBuffer.duration;
     grainSampler.loopStart = sample.loopStart;
     // grainSampler.loopEnd = adjVal + (knob.four.val * buffer1.duration);
     grainSampler.loopEnd = sample.loopEnd();
@@ -330,7 +319,14 @@ function App() {
 
   const upPad = () => {
 
-    grainSampler.detune += 100;
+    if (mode === "default") {
+      grainSampler.detune += 100;
+    }
+    else if (mode === "selectAudio" ) {
+      grainSampler.buffer = new Tone.Buffer(sound.next());
+
+    }
+
     setDPad(img.btn.dUp);
     
 
@@ -338,7 +334,7 @@ function App() {
 
   const downPad = () => {
     grainSampler.detune -= 100;
-    grainSampler.detune += 100;
+
     setDPad(img.btn.dDown);
     
   }
@@ -387,14 +383,16 @@ function App() {
   }
 
   const selClick = () => {
-    setMode(selectMode());
+    setMode(screen.next());
+    console.log(mode)
+    // setMode(selectMode());
   }
 
   const startClick = () => {
 
   }
   
-  console.log(img.btn.dPad);
+
   return (
     <div>
               
@@ -409,13 +407,14 @@ function App() {
         </div>
       
         <div className="button-area">
+          
+          <div className="btn-circle"></div>
+          <div style={{ right: "8.8%", top:"21.2%"}} className="btn-circle"></div>
           <button className="a-button" onMouseDown={aClick}></button>
-          <div className="btn-circle">wwewe</div>
           <button className="b-button" onMouseDown={bClick}></button>
           <div className="dPad">
-          <img src={img.btn.dBack} style={{position: "absolute", width: "105%", right: "-2%"}}></img>
+            <img src={img.btn.dBack} style={{position: "absolute", width: "105%", right: "-2%"}}></img>
             <img src={dPad} style={{position: "absolute", width: "100%"}}></img>
-            
             <button className="d-btn" style={{left: "33%"}}onMouseDown={upPad} onMouseUp={()=>setDPad(img.btn.dPad)}></button>
             <button className="d-btn" style={{bottom: 0, left: "33%"}} onMouseDown={downPad} onMouseUp={()=>setDPad(img.btn.dPad)}></button>
             <button className="d-btn" style={{bottom: "33%", left: 0}} onMouseDown={leftPad} onMouseUp={()=>setDPad(img.btn.dPad)}></button>

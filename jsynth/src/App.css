@@ -34,12 +34,15 @@
 }
 .display{
   position: relative;
- 
+
   padding: 0;
-  width: 78%;
-  height: 32.5%; 
+  width: 76%;
+  height: 31.5%;
+  margin-bottom: 1%; 
+  
   margin:0 auto;
-  top: 10%;
+
+  top: 10.5%;
  
 }
 
@@ -51,7 +54,7 @@
     padding: 0px;
     height: 10%;
     margin: 0 auto;
-    margin-top: 18%;
+    margin-top: 20%;
  
   
 }
@@ -65,13 +68,13 @@
 .btn-circle{
 
   position: absolute;
-  background-color: "black";
-  /* border-radius: 50%; */
-  right: 23.8%;
+  background-color: rgb(90, 90, 90);
+  border-radius: 50%; 
+  right: 24%;
   top: 33%;
-  width: 14%;
+  width: 12.2%;
   /* padding: 0; */
-  padding-bottom: 14%; 
+  padding-bottom: 12.2%; 
 }
 .a-button{
   outline: none;
@@ -79,21 +82,22 @@
   border: none;
   background-image: url("./assets/4x/a.png");
   border-radius: 50%;
-  
+  background-color: transparent;
   right: 8.7%;
   top: 21%;
-  width: 12%;
+  width: 11.9%;
   padding: 0;
-  padding-bottom: 12%;
+  padding-bottom: 11.9%;
   background-size: contain;
   background-repeat: no-repeat;
   cursor: pointer;
+  opacity: .9;
 }
 .a-button:active {
   top: 21.5%;
-  width: 11.9%; right: 8.8%;
-  padding-bottom: 11.9%;
-  opacity: .9;
+  width: 11.8%; right: 8.8%;
+  padding-bottom: 11.8%;
+  opacity: 1;
 }
 
 .b-button{ 
@@ -101,22 +105,24 @@
   position: absolute;
   border: none;
   background-image: url("./assets/4x/b.png");
+  background-color: transparent;
 
   border-radius: 50%;
   right: 23.8%;
   top: 33%;
-  width: 12%;
+  width: 11.9%;
   padding: 0;
-  padding-bottom: 12%;
+  padding-bottom: 11.9%;
   background-size: contain;
   background-repeat: no-repeat;
   cursor: pointer;
+  opacity: .9;
 }
 .b-button:active {
   top: 33.5%;
-  width: 11.9%; right: 23.9%;
-  padding-bottom: 11.9%;
-  opacity: .9;
+  width: 11.8%; right: 23.9%;
+  padding-bottom: 11.8%;
+  opacity: 1;
 }
 .sel-button{ 
   cursor: pointer;
@@ -154,7 +160,33 @@
 
 }
 
+p{
+  font-size: 16px;
+  color: #3f3f3f;
+  text-shadow: -1px 2px #a7a7a7;
+  padding: 3px;
+  margin: 0;
+  overflow-x: hidden ;
+}
+/* p:hover{
+  color: #B8C0AB;
+  background-color: #3f3f3f ;
+  text-shadow: none;
+  box-shadow: -1px 2px #919191;
 
+} */
+
+x-p1{
+  display: block;
+  font-size: 16px;
+  color: #B8C0AB;
+  background-color: #3f3f3f ;
+  text-shadow: none;
+  box-shadow: -1px 2px #919191;
+  padding: 3px;
+  margin: 0;
+  overflow-x: hidden ;
+}
 
 .d-btn{
   cursor: pointer;
