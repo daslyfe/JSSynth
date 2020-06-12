@@ -159,8 +159,33 @@
   padding-bottom: 22%;
 
 }
+.screen-text-wrapper{
+  display: block;
+  padding: 0;
+  margin: 0;
+  overflow-x: hidden ;
+}
+.screen-text-wrapper-select{
+  display: block;
 
-p{
+  background-color: #3f3f3f ;
+  box-shadow: -1px 2.5px #919191;
+  margin: 0;
+  overflow-x: hidden ;
+}
+.screen-text{
+  font-size: 3px;
+  fill: #3f3f3f;
+  text-shadow: -1px 2.5px #a7a7a7;
+}
+.screen-text-select{
+  font-size: 3px;
+  fill: #B8C0AB;
+
+}
+
+x-txt{
+  display: block;
   font-size: 16px;
   color: #3f3f3f;
   text-shadow: -1px 2px #a7a7a7;
@@ -176,13 +201,13 @@ p{
 
 } */
 
-x-p1{
+x-sel{
   display: block;
   font-size: 16px;
   color: #B8C0AB;
   background-color: #3f3f3f ;
   text-shadow: none;
-  box-shadow: -1px 2px #919191;
+ 
   padding: 3px;
   margin: 0;
   overflow-x: hidden ;

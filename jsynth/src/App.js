@@ -18,12 +18,21 @@ let sound = {
   files: [],
   selected: 0,
   next: function() {
-    this.selected = (this.selected + 1) % this.files.length;
-    return this.files[this.selected].path;
+   
+      this.selected = (this.selected + 1) % this.files.length;
+    if (this.files[this.selected]) {
+      return this.files[this.selected].path;
+    }
   },
   prev: function() {
-    this.selected = (this.selected - 1) % this.files.length;
-    return this.files[this.selected].path;
+
+    this.selected = (this.selected - 1) % (this.files.length);
+    if (this.selected < 0) this.selected = this.files.length -1;
+    
+    console.log(this.selected)
+    if (this.files[this.selected]) {
+      return this.files[this.selected].path;
+    }
   }
 }
 
@@ -194,15 +203,20 @@ const screen = {
     }
 }
 
+function getScreenText(text, type) {
+  if (type === "select"){
+    return <svg key={text} className="screen-text-wrapper-select" viewBox="0 0 100 5"><text className="screen-text-select"  x="1" y="4">{text}</text></svg>
+  }
+  return <svg key={text} className="screen-text-wrapper" viewBox="0 0 100 5"><text className="screen-text"  x="1" y="4">{text}</text></svg>
 
-
+}
 
 function App() {
-  const [mode, setMode] = React.useState("default");
+  const [mode, setMode] = React.useState("selectAudio");
   const [width, setWidth] = React.useState(appStyles.canvasWidth);
   const [height, setHeight] = React.useState(appStyles.canvasHeight);
 
-  const [Display, setDisplay] = React.useState(<x-p1>Wiweeeeeeeeeeeeesdddddddddddddddde</x-p1>);
+  const [Display, setDisplay] = React.useState(<svg className="screen-text-wrapper" viewBox="0 0 100 5"><text className="screen-text"  x="0" y="4">GrainBoy</text></svg>);
   const [dPad, setDPad] = React.useState(img.btn.dPad);
   // const [buffer, setBuffer] = React.useState(new Tone.Buffer(sound[0].path))
   const updateWidthAndHeight = () => {
@@ -277,7 +291,8 @@ function App() {
 
   knob.three.action = () => {
     let _knob = knob.three;
-    sample.loopStart = _knob.val * activeBuffer.duration;
+    sample.loopStart = _knob.val * grainSampler.buffer.duration;
+   
     grainSampler.loopStart = sample.loopStart;
     // grainSampler.loopEnd = adjVal + (knob.four.val * buffer1.duration);
     grainSampler.loopEnd = sample.loopEnd();
@@ -307,6 +322,8 @@ function App() {
 
   }
 
+
+
   const aClick = () => {
 
   }
@@ -315,25 +332,43 @@ function App() {
 
 
   }
-
+  const getSoundList = () => {
+    let out = [];
+    for (let file in sound.files) {
+      
+      if (sound.files[file] === sound.files[sound.selected]) {
+      out.push(getScreenText(sound.files[file].name, "select"))
+      }
+      else {
+        out.push(getScreenText(sound.files[file].name))
+      }
+    }
+    return out;
+  }
 
   const upPad = () => {
-
     if (mode === "default") {
       grainSampler.detune += 100;
     }
     else if (mode === "selectAudio" ) {
-      grainSampler.buffer = new Tone.Buffer(sound.next());
-
+      grainSampler.buffer = new Tone.Buffer(sound.prev());
+      setDisplay(getSoundList())
     }
-
+  
     setDPad(img.btn.dUp);
-    
-
   }
 
   const downPad = () => {
-    grainSampler.detune -= 100;
+    if (mode === "default") {
+      grainSampler.detune -= 100;
+    }
+    else if (mode === "selectAudio") {
+      grainSampler.buffer = new Tone.Buffer(sound.next());
+
+
+      setDisplay(getSoundList())
+    }
+
 
     setDPad(img.btn.dDown);
     
@@ -381,6 +416,8 @@ function App() {
     setDPad(img.btn.dRight);
 
   }
+
+
 
   const selClick = () => {
     setMode(screen.next());
