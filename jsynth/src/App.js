@@ -3,7 +3,7 @@ import Tone from "tone";
 import C1 from "./samples/p.wav";
 
 import "./input-knobs-master/input-knobs.js"
-import {img} from "./images"
+import { img } from "./images"
 
 import './App.css';
 
@@ -15,28 +15,57 @@ import FlexGraph, { DrawShapesGraph, LineMarkGraph } from "./flexgraph.js"
 let activeBuffer = new Tone.Buffer(C1);
 // let sound = [];
 let sound = {
-  files: [],
+  files: {
+    0: []
+  },
+  pageMax: 14,
+  currentPage: 0,
   selected: 0,
-  next: function() {
-   
-      this.selected = (this.selected + 1) % this.files.length;
-    if (this.files[this.selected]) {
-      return this.files[this.selected].path;
+  next: function () {
+    let numPages = Object.keys(this.files).length;
+    let numFiles = this.files[this.currentPage].length;
+    if (numPages <= 1) {
+      this.selected = (this.selected + 1) % numFiles;
+    }
+    else {
+      if (this.selected >= numFiles - 1) {
+        this.currentPage = (this.currentPage + 1) % numPages;
+        this.selected = 0;
+      }
+      else {
+        this.selected += 1;
+      }
+    }
+    console.log(this.currentPage + " " + this.selected)
+    let currentFile = this.files[this.currentPage][this.selected];
+    if (currentFile) {
+      return currentFile.path;
     }
   },
-  prev: function() {
-
-    this.selected = (this.selected - 1) % (this.files.length);
-    if (this.selected < 0) this.selected = this.files.length -1;
-    
-    console.log(this.selected)
-    if (this.files[this.selected]) {
-      return this.files[this.selected].path;
+  prev: function () {
+    let numPages = Object.keys(this.files).length;
+    let numFiles = this.files[this.currentPage].length;
+    if (numPages <= 1) {
+      this.selected = (this.selected - 1) % (numFiles);
+      if (this.selected < 0) this.selected = numFiles - 1;
+    }
+    else {
+      if (this.selected <= 0) {
+        this.currentPage = (this.currentPage - 1) % numPages;
+        if (this.currentPage < 0) this.currentPage = numPages - 1;
+        numFiles = this.files[this.currentPage].length;
+        this.selected = numFiles - 1;
+      }
+      else {
+        this.selected -= 1;
+      }
+    }
+    let currentFile = this.files[this.currentPage][this.selected];
+    if (currentFile) {
+      return currentFile.path;
     }
   }
 }
-
-let selectedFile = 0;
 
 
 export var GrainBuffer = null;
@@ -94,7 +123,7 @@ export const appStyles = {
   canvasWidth: window.innerWidth,
   canvasHeight: window.innerHeight,
   gameHeight: function () { return this.canvasHeight / 1 },
-  gameWidth: function () { return this.gameHeight()/1.685},
+  gameWidth: function () { return this.gameHeight() / 1.685 },
   screenBGColor: "#B8C0AB",
   gameColor: "#F2F2F2",
   clearColor: ""
@@ -172,26 +201,7 @@ limiter.connect(Tone.Master);
 
 
 
-function AddFile() {
-  let audioRef = React.createRef();
-  function setAudio(files) {
-      let file;   
-      for (let i = 0; i < files.length; i++){     
-        file = URL.createObjectURL(files[i]);
-        let soundInfo = {name: files[i].name, path: file}
-        sound.files.push(soundInfo);
-      }
-      console.log(sound)
-      selectedFile = sound.files[sound.files.length -1];
-      activeBuffer = new Tone.Buffer(selectedFile.path);
-      grainSampler.buffer = activeBuffer; 
-  } 
-  return (
-      <div>
-          <input ref ={audioRef} id="audio_file" type="file" multiple accept="audio/*" onChange={() => setAudio(audioRef.current.files)} />
-      </div>
-  )
-}
+
 
 
 const screen = {
@@ -200,15 +210,21 @@ const screen = {
   next: function () {
     this.selected = (this.selected + 1) % this.mode.length;
     return this.mode[this.selected];
-    }
+  }
+}
+let getParamDisplay = (display) => {
+  return (<div className="param-display">{display}</div>)
 }
 
 function getScreenText(text, type) {
-  if (type === "select"){
-    return <svg key={text} className="screen-text-wrapper-select" viewBox="0 0 100 5"><text className="screen-text-select"  x="1" y="4">{text}</text></svg>
+  if (type === "select") {
+    return <svg key={text} className="screen-text-wrapper-select" viewBox="0 0 100 5"><text className="screen-text-select" x="1" y="4">{text}</text></svg>
   }
-  return <svg key={text} className="screen-text-wrapper" viewBox="0 0 100 5"><text className="screen-text"  x="1" y="4">{text}</text></svg>
+  return <svg key={text} className="screen-text-wrapper" viewBox="0 0 100 5"><text className="screen-text" x="1" y="4">{text}</text></svg>
 
+}
+function getParamText(text) {
+  return <svg key={text} className="param-text-wrapper" viewBox="0 0 100 12"><text className="param-text" dominantBaseline="middle" textAnchor="middle" x="50%" y="56%">{text}</text></svg>
 }
 
 function App() {
@@ -216,7 +232,8 @@ function App() {
   const [width, setWidth] = React.useState(appStyles.canvasWidth);
   const [height, setHeight] = React.useState(appStyles.canvasHeight);
 
-  const [Display, setDisplay] = React.useState(<svg className="screen-text-wrapper" viewBox="0 0 100 5"><text className="screen-text"  x="0" y="4">GrainBoy</text></svg>);
+  const [Display, setDisplay] = React.useState(<svg className="screen-text-wrapper" viewBox="0 0 100 5"><text className="screen-text" x="0" y="4">GrainBoy</text></svg>);
+  const [paramDisplay, setParamDisplay] = React.useState(getParamDisplay())
   const [dPad, setDPad] = React.useState(img.btn.dPad);
   // const [buffer, setBuffer] = React.useState(new Tone.Buffer(sound[0].path))
   const updateWidthAndHeight = () => {
@@ -226,16 +243,43 @@ function App() {
     setHeight(appStyles.canvasHeight);
   };
 
-
-
-
-
-
   let topKnobs = [];
 
   useEffect(() => {
     // window.addEventListener("resize", updateWidthAndHeight);
   }, []);
+
+  function AddFile() {
+    let fileUploadRef = React.createRef();
+    function setAudio(files) {
+      let file;
+      let currentPage = 0;
+      for (let i = 0; i < files.length; i++) {
+        file = URL.createObjectURL(files[i]);
+        let soundInfo = { name: files[i].name, path: file }
+        if (sound.files[currentPage].length >= 14) {
+          currentPage += 1;
+          sound.files[currentPage] = [];
+        }
+        sound.files[currentPage].push(soundInfo);
+      }
+      console.log(sound)
+      // selectedFile = sound.files[sound.files.length -1];
+      // activeBuffer = new Tone.Buffer(selectedFile.path);
+      // grainSampler.buffer = activeBuffer; 
+    }
+    return (
+      <div style={{width: "100%", height: "100%"}}>
+        <input style={{display: "none"}} ref={fileUploadRef} id="audio_file" type="file" multiple accept="audio/*" onChange={() => {console.log(fileUploadRef.current); setAudio(fileUploadRef.current.files); setDisplay(getSoundList()) }} />
+        <input className="screen-button-overlay" type="button" onMouseDown={() => fileUploadRef.current.click()}/>
+      </div>
+    )
+  }
+
+
+
+
+
 
   const handleStart = () => {
     grainSampler.start();
@@ -244,16 +288,16 @@ function App() {
 
     (grainSampler.buffer.toArray());
   };
-  
+
   let GetKnob = (color, dotColor, name) => {
     return (
-      <input key={color} style={{ padding: 0, display: 'inline-block', marginLeft: "5%"}} type="range" className="input-knob"
+      <input key={color} style={{ padding: 0, display: 'inline-block', marginLeft: "5%" }} type="range" className="input-knob"
         data-bgcolor={color}
         data-fgcolor={dotColor}
-        data-diameter={parseInt(appStyles.gameWidth()/7)}
+        data-diameter={parseInt(appStyles.gameWidth() / 7)}
         min={0}
         max={127}
-        name = {name} 
+        name={name}
       />
     )
   }
@@ -266,7 +310,7 @@ function App() {
 
   knob.one.action = () => {
     let _knob = knob.one;
-  
+
     let adjValue = parseInt(_knob.val * (noteArray.length - 1));
     let note = noteArray[adjValue];
     let noteLength = time.note(note).time;
@@ -284,7 +328,7 @@ function App() {
     else {
       adjValue = parseInt(_knob.val * 30);
     }
-   
+
     grainSampler.overlap = adjValue;
   }
 
@@ -292,7 +336,7 @@ function App() {
   knob.three.action = () => {
     let _knob = knob.three;
     sample.loopStart = _knob.val * grainSampler.buffer.duration;
-   
+
     grainSampler.loopStart = sample.loopStart;
     // grainSampler.loopEnd = adjVal + (knob.four.val * buffer1.duration);
     grainSampler.loopEnd = sample.loopEnd();
@@ -313,9 +357,9 @@ function App() {
   }
 
   knob.five.action = () => {
-    
+
     let _knob = knob.five;
-  
+
     let logVal = Math.pow((_knob.val + .38) * 5.2, 5);
     filter.frequency.value = .1 + logVal;
 
@@ -334,35 +378,41 @@ function App() {
   }
   const getSoundList = () => {
     let out = [];
-    for (let file in sound.files) {
-      
-      if (sound.files[file] === sound.files[sound.selected]) {
-      out.push(getScreenText(sound.files[file].name, "select"))
+    for (let file in sound.files[sound.currentPage]) {
+
+      let fileList = sound.files[sound.currentPage];
+      if (fileList[file] === fileList[sound.selected]) {
+        out.push(getScreenText(fileList[file].name, "select"))
       }
       else {
-        out.push(getScreenText(sound.files[file].name))
+        out.push(getScreenText(fileList[file].name))
       }
     }
     return out;
   }
 
   const upPad = () => {
+    setDPad(img.btn.dUp);
     if (mode === "default") {
       grainSampler.detune += 100;
+      setParamDisplay(getParamDisplay(getParamText("detune " + grainSampler.detune)))
     }
-    else if (mode === "selectAudio" ) {
+    else if (mode === "selectAudio") {
+      // setDisplay(getScreenText("Loading..."))
       grainSampler.buffer = new Tone.Buffer(sound.prev());
       setDisplay(getSoundList())
     }
-  
-    setDPad(img.btn.dUp);
+
+
   }
 
   const downPad = () => {
+    setDPad(img.btn.dDown);
     if (mode === "default") {
       grainSampler.detune -= 100;
     }
     else if (mode === "selectAudio") {
+      // setDisplay(getScreenText("Loading..."))
       grainSampler.buffer = new Tone.Buffer(sound.next());
 
 
@@ -370,16 +420,16 @@ function App() {
     }
 
 
-    setDPad(img.btn.dDown);
-    
+
+
   }
   let playBackStep = .5;
 
 
   const leftPad = () => {
-    
+    setDPad(img.btn.dLeft);
     if (grainSampler.playbackRate > playBackStep && grainSampler.reverse === false) {
-    
+
       grainSampler.playbackRate -= playBackStep;
     }
     else if (grainSampler.playbackRate <= playBackStep && grainSampler.reverse === false) {
@@ -395,10 +445,11 @@ function App() {
     knob.one.action(knob.one);
     knob.three.action(knob.three);
     knob.four.action(knob.four);
-    setDPad(img.btn.dLeft);
+
   }
 
   const rightPad = () => {
+    setDPad(img.btn.dRight);
     if (grainSampler.playbackRate > playBackStep && grainSampler.reverse === true) {
       grainSampler.playbackRate -= playBackStep;
     }
@@ -413,7 +464,7 @@ function App() {
     knob.one.action(knob.one);
     knob.three.action(knob.three);
     knob.four.action(knob.four);
-    setDPad(img.btn.dRight);
+
 
   }
 
@@ -428,43 +479,47 @@ function App() {
   const startClick = () => {
 
   }
-  
+
 
   return (
     <div>
-              
-      {AddFile()}
-      <div className="grainboi" style={{ position: "absolute",  width: appStyles.gameWidth(), height: appStyles.gameHeight()}}>
 
-        
-        <div className="display">{Display}</div>
-        
+      
+      <div className="grainboi" style={{ position: "absolute", width: appStyles.gameWidth(), height: appStyles.gameHeight() }}>
+
+
+        <div className="display">
+          {Display}
+          {paramDisplay}
+          {AddFile()}
+        </div>
+
         <div className="knob-bar">
           {topKnobs}
         </div>
-      
+
         <div className="button-area">
-          
+
           <div className="btn-circle"></div>
-          <div style={{ right: "8.8%", top:"21.2%"}} className="btn-circle"></div>
+          <div style={{ right: "8.8%", top: "21.2%" }} className="btn-circle"></div>
           <button className="a-button" onMouseDown={aClick}></button>
           <button className="b-button" onMouseDown={bClick}></button>
           <div className="dPad">
-            <img src={img.btn.dBack} style={{position: "absolute", width: "105%", right: "-2%"}}></img>
-            <img src={dPad} style={{position: "absolute", width: "100%"}}></img>
-            <button className="d-btn" style={{left: "33%"}}onMouseDown={upPad} onMouseUp={()=>setDPad(img.btn.dPad)}></button>
-            <button className="d-btn" style={{bottom: 0, left: "33%"}} onMouseDown={downPad} onMouseUp={()=>setDPad(img.btn.dPad)}></button>
-            <button className="d-btn" style={{bottom: "33%", left: 0}} onMouseDown={leftPad} onMouseUp={()=>setDPad(img.btn.dPad)}></button>
-            <button className="d-btn" style={{bottom: "33%", right: 0}} onMouseDown={rightPad} onMouseUp={()=>setDPad(img.btn.dPad)}></button>
+            <img src={img.btn.dBack} style={{ position: "absolute", width: "105%", right: "-2%" }}></img>
+            <img src={dPad} style={{ position: "absolute", width: "100%" }}></img>
+            <button className="d-btn" style={{ left: "33%" }} onMouseDown={upPad} onMouseUp={() => setDPad(img.btn.dPad)}></button>
+            <button className="d-btn" style={{ bottom: 0, left: "33%" }} onMouseDown={downPad} onMouseUp={() => setDPad(img.btn.dPad)}></button>
+            <button className="d-btn" style={{ bottom: "33%", left: 0 }} onMouseDown={leftPad} onMouseUp={() => setDPad(img.btn.dPad)}></button>
+            <button className="d-btn" style={{ bottom: "33%", right: 0 }} onMouseDown={rightPad} onMouseUp={() => setDPad(img.btn.dPad)}></button>
           </div>
-  
-          <button className="sel-button" style={{left: "33%"}} onMouseDown={selClick}></button>
-          <button className="sel-button" style={{right: "33%"}} onMouseDown={startClick}></button>
+
+          <button className="sel-button" style={{ left: "33%" }} onMouseDown={selClick}></button>
+          <button className="sel-button" style={{ right: "33%" }} onMouseDown={startClick}></button>
         </div>
 
       </div>
       <button onMouseDown={handleStart}>play</button>
-      
+
 
     </div>
   );

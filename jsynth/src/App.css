@@ -41,9 +41,20 @@
   margin-bottom: 1%; 
   
   margin:0 auto;
-
+  overflow: hidden;
   top: 10.5%;
  
+}
+.screen-button-overlay{
+  position: absolute;
+  top: 0;
+  left: 0;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  border: none;
+  height: 100%;
+  width: 100%;
 }
 
 .knob-bar{
@@ -164,6 +175,7 @@
   padding: 0;
   margin: 0;
   overflow-x: hidden ;
+
 }
 .screen-text-wrapper-select{
   display: block;
@@ -178,41 +190,37 @@
   fill: #3f3f3f;
   text-shadow: -1px 2.5px #a7a7a7;
 }
+.param-text-wrapper{
+  display: block;
+  padding: 0;
+  margin: 0;
+  overflow-x: hidden ;
+  border-radius: 0px;
+  background-color: #3f3f3f ;
+  box-shadow: -1px 2.5px #919191;
+
+}
+.param-text{
+  font-size: 6px;
+  fill: #B8C0AB;
+
+
+}
 .screen-text-select{
   font-size: 3px;
   fill: #B8C0AB;
 
 }
 
-x-txt{
-  display: block;
-  font-size: 16px;
-  color: #3f3f3f;
-  text-shadow: -1px 2px #a7a7a7;
-  padding: 3px;
-  margin: 0;
-  overflow-x: hidden ;
-}
-/* p:hover{
-  color: #B8C0AB;
-  background-color: #3f3f3f ;
-  text-shadow: none;
-  box-shadow: -1px 2px #919191;
+.param-display{
+  position: absolute;
 
-} */
-
-x-sel{
-  display: block;
-  font-size: 16px;
-  color: #B8C0AB;
-  background-color: #3f3f3f ;
-  text-shadow: none;
+  width: 50%;
+  height: 10%;
+  top: 0;
+  right: 0;
  
-  padding: 3px;
-  margin: 0;
-  overflow-x: hidden ;
 }
-
 .d-btn{
   cursor: pointer;
   outline: none;
