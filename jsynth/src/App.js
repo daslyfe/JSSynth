@@ -166,6 +166,17 @@ let filter = new Tone.Filter(
     gain: -12
   }
 )
+const grainVol = new Tone.Volume(0);
+let pitchMix = new Tone.CrossFade();
+let pitchShift = new Tone.PitchShift(
+  {
+    pitch: 7,
+    windowSize: .4,
+    delayTime: 0,
+    feedback: .5
+  }
+);
+
 
 
 let fade = .5;
@@ -193,7 +204,12 @@ const grainSampler = new Tone.GrainPlayer({
 // let convolver = new Tone.Convolver(buffer2)
 // convolver.wet.value = 0
 
-grainSampler.connect(filter);
+grainSampler.connect(pitchShift);
+grainSampler.connect(pitchMix, 0, 0);
+pitchShift.connect(pitchMix, 0, 1);
+pitchMix.connect(filter);
+
+// grainVol.connect(filter)
 // convolver.connect(filter);
 // vibrato.connect(filter);
 filter.connect(limiter);
@@ -224,7 +240,7 @@ function getScreenText(text, type) {
 
 }
 function getParamText(text) {
-  return <svg key={text} className="param-text-wrapper" viewBox="0 0 100 12"><text className="param-text" dominantBaseline="middle" textAnchor="middle" x="50%" y="56%">{text}</text></svg>
+  return <svg key={text} className="param-text-wrapper" viewBox="0 0 100 12"><text className="param-text" dominantBaseline="middle" textAnchor="middle" x="50%" y="59%">{text}</text></svg>
 }
 
 function App() {
@@ -269,9 +285,9 @@ function App() {
       // grainSampler.buffer = activeBuffer; 
     }
     return (
-      <div style={{width: "100%", height: "100%"}}>
-        <input style={{display: "none"}} ref={fileUploadRef} id="audio_file" type="file" multiple accept="audio/*" onChange={() => {console.log(fileUploadRef.current); setAudio(fileUploadRef.current.files); setDisplay(getSoundList()) }} />
-        <input className="screen-button-overlay" type="button" onMouseDown={() => fileUploadRef.current.click()}/>
+      <div style={{ width: "100%", height: "100%" }}>
+        <input style={{ display: "none" }} ref={fileUploadRef} id="audio_file" type="file" multiple accept="audio/*" onChange={() => { console.log(fileUploadRef.current); setAudio(fileUploadRef.current.files); setDisplay(getSoundList()) }} />
+        <input className="screen-button-overlay" type="button" onMouseDown={() => fileUploadRef.current.click()} />
       </div>
     )
   }
@@ -329,7 +345,16 @@ function App() {
       adjValue = parseInt(_knob.val * 30);
     }
 
+    //change the volume to be even, volume change delayed to prevent glitching
+    if (grainSampler.overlap === 0 && adjValue > 0) {
+      setTimeout(() => { grainSampler.volume.value = 7; console.log("timeout") }, 500)
+    }
+    else if (adjValue === 0) {
+      grainSampler.volume.value = -6;
+    }
+
     grainSampler.overlap = adjValue;
+    console.log(grainSampler.overlap)
   }
 
 
@@ -484,7 +509,7 @@ function App() {
   return (
     <div>
 
-      
+
       <div className="grainboi" style={{ position: "absolute", width: appStyles.gameWidth(), height: appStyles.gameHeight() }}>
 
 
