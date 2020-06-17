@@ -215,10 +215,7 @@ pitchMix.connect(filter);
 filter.connect(limiter);
 limiter.connect(Tone.Master);
 
-
-
-
-
+let paramTimer;
 
 const screen = {
   mode: ["default", "selectAudio"],
@@ -298,11 +295,16 @@ function App() {
   };
 
   let getParamDisplay = (text) => {
-    // let display = () => 
-    return (
-    <div className="param-display">
-      <svg key={text} className="param-text-wrapper" viewBox="0 0 100 12"><text className="param-text" dominantBaseline="middle" textAnchor="middle" x="50%" y="59%">{text}</text></svg>
-    </div>)
+    clearTimeout(paramTimer);
+   
+    let display = () => { 
+      return (
+        <div className="param-display">
+          <svg key={text} className="param-text-wrapper" viewBox="0 0 100 12"><text className="param-text" dominantBaseline="middle" textAnchor="middle" x="50%" y="59%">{text}</text></svg>
+        </div>)
+    }
+    setParamDisplay(display);
+    paramTimer = setTimeout(() => setParamDisplay([]), 1000);
   }
 
   let GetKnob = (color, dotColor, name) => {
@@ -420,7 +422,7 @@ function App() {
     setDPad(img.btn.dUp);
     if (mode === "default") {
       grainSampler.detune += 100;
-      setParamDisplay(getParamDisplay("detune " + grainSampler.detune))
+      getParamDisplay("detune " + grainSampler.detune);
     }
     else if (mode === "selectAudio") {
       // setDisplay(getScreenText("Loading..."))
