@@ -228,9 +228,7 @@ const screen = {
     return this.mode[this.selected];
   }
 }
-let getParamDisplay = (display) => {
-  return (<div className="param-display">{display}</div>)
-}
+
 
 function getScreenText(text, type) {
   if (type === "select") {
@@ -239,9 +237,7 @@ function getScreenText(text, type) {
   return <svg key={text} className="screen-text-wrapper" viewBox="0 0 100 5"><text className="screen-text" x="1" y="4">{text}</text></svg>
 
 }
-function getParamText(text) {
-  return <svg key={text} className="param-text-wrapper" viewBox="0 0 100 12"><text className="param-text" dominantBaseline="middle" textAnchor="middle" x="50%" y="59%">{text}</text></svg>
-}
+
 
 function App() {
   const [mode, setMode] = React.useState("selectAudio");
@@ -249,9 +245,9 @@ function App() {
   const [height, setHeight] = React.useState(appStyles.canvasHeight);
 
   const [Display, setDisplay] = React.useState(<svg className="screen-text-wrapper" viewBox="0 0 100 5"><text className="screen-text" x="0" y="4">GrainBoy</text></svg>);
-  const [paramDisplay, setParamDisplay] = React.useState(getParamDisplay())
+  const [paramDisplay, setParamDisplay] = React.useState()
   const [dPad, setDPad] = React.useState(img.btn.dPad);
-  // const [buffer, setBuffer] = React.useState(new Tone.Buffer(sound[0].path))
+
   const updateWidthAndHeight = () => {
     appStyles.canvasWidth = window.innerWidth;
     appStyles.canvasHeight = window.innerHeight;
@@ -279,10 +275,6 @@ function App() {
         }
         sound.files[currentPage].push(soundInfo);
       }
-      console.log(sound)
-      // selectedFile = sound.files[sound.files.length -1];
-      // activeBuffer = new Tone.Buffer(selectedFile.path);
-      // grainSampler.buffer = activeBuffer; 
     }
     return (
       <div style={{ width: "100%", height: "100%" }}>
@@ -298,12 +290,20 @@ function App() {
 
 
   const handleStart = () => {
-    grainSampler.start();
-    GrainBuffer = grainSampler.buffer.toArray();
+    grainSampler.state === "stopped" ? grainSampler.start() : grainSampler.stop();
+    // GrainBuffer = grainSampler.buffer.toArray();
 
 
-    (grainSampler.buffer.toArray());
+    // grainSampler.buffer.toArray();
   };
+
+  let getParamDisplay = (text) => {
+    // let display = () => 
+    return (
+    <div className="param-display">
+      <svg key={text} className="param-text-wrapper" viewBox="0 0 100 12"><text className="param-text" dominantBaseline="middle" textAnchor="middle" x="50%" y="59%">{text}</text></svg>
+    </div>)
+  }
 
   let GetKnob = (color, dotColor, name) => {
     return (
@@ -420,7 +420,7 @@ function App() {
     setDPad(img.btn.dUp);
     if (mode === "default") {
       grainSampler.detune += 100;
-      setParamDisplay(getParamDisplay(getParamText("detune " + grainSampler.detune)))
+      setParamDisplay(getParamDisplay("detune " + grainSampler.detune))
     }
     else if (mode === "selectAudio") {
       // setDisplay(getScreenText("Loading..."))
@@ -502,7 +502,7 @@ function App() {
   }
 
   const startClick = () => {
-
+    handleStart();
   }
 
 
@@ -543,7 +543,7 @@ function App() {
         </div>
 
       </div>
-      <button onMouseDown={handleStart}>play</button>
+
 
 
     </div>
