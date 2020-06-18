@@ -237,7 +237,7 @@ function getScreenText(text, type) {
 
 
 function App() {
-  const [mode, setMode] = React.useState("selectAudio");
+  const [mode, setMode] = React.useState("default");
   const [width, setWidth] = React.useState(appStyles.canvasWidth);
   const [height, setHeight] = React.useState(appStyles.canvasHeight);
 
@@ -295,16 +295,19 @@ function App() {
   };
 
   let getParamDisplay = (text) => {
-    clearTimeout(paramTimer);
-   
-    let display = () => { 
-      return (
-        <div className="param-display">
-          <svg key={text} className="param-text-wrapper" viewBox="0 0 100 12"><text className="param-text" dominantBaseline="middle" textAnchor="middle" x="50%" y="59%">{text}</text></svg>
-        </div>)
+    if (text) {
+      clearTimeout(paramTimer);
+
+      let display = () => {
+        return (
+          <div className="param-display">
+            <svg key={text} className="param-text-wrapper" viewBox="0 0 100 12"><text className="param-text" dominantBaseline="middle" textAnchor="middle" x="50%" y="59%">{text}</text></svg>
+          </div>)
+      }
+
+      setParamDisplay(display);
+      paramTimer = setTimeout(() => setParamDisplay([]), 1000);
     }
-    setParamDisplay(display);
-    paramTimer = setTimeout(() => setParamDisplay([]), 1000);
   }
 
   let GetKnob = (color, dotColor, name) => {
@@ -327,6 +330,7 @@ function App() {
 
 
   knob.one.action = () => {
+    let param
     let _knob = knob.one;
 
     let adjValue = parseInt(_knob.val * (noteArray.length - 1));
@@ -335,9 +339,12 @@ function App() {
     let display = time.note(note).display;
     // grainSampler.playbackRate = _knob.val * 20;
     grainSampler.grainSize = noteLength * grainSampler.playbackRate;
+    param = "grain " + display
+    getParamDisplay(param);
   }
 
   knob.two.action = () => {
+    let param;
     let _knob = knob.two;
     let adjValue = 0;
     if (_knob.val < .8) {
@@ -349,37 +356,41 @@ function App() {
 
     //change the volume to be even, volume change delayed to prevent glitching
     if (grainSampler.overlap === 0 && adjValue > 0) {
-      setTimeout(() => { grainSampler.volume.value = 7; console.log("timeout") }, 500)
+      setTimeout(() => { grainSampler.volume.value = 7;}, 500)
     }
     else if (adjValue === 0) {
       grainSampler.volume.value = -6;
     }
-
+    
     grainSampler.overlap = adjValue;
-    console.log(grainSampler.overlap)
+    param = "overlap " + grainSampler.overlap;
+    getParamDisplay(param);
   }
 
 
   knob.three.action = () => {
+    let param;
     let _knob = knob.three;
     sample.loopStart = _knob.val * grainSampler.buffer.duration;
 
     grainSampler.loopStart = sample.loopStart;
-    // grainSampler.loopEnd = adjVal + (knob.four.val * buffer1.duration);
     grainSampler.loopEnd = sample.loopEnd();
-    console.log("start " + grainSampler.loopStart + " end " + grainSampler.loopEnd);
-    // grainSampler.loopEnd = grainSampler.loopStart + .1;
+    param = "start " + grainSampler.loopStart.toFixed(2);
+    getParamDisplay(param);
+
   }
 
   knob.four.action = () => {
+    let param;
     let _knob = knob.four;
     let adjValue = parseInt(_knob.val * (noteArray.length - 1));
     let note = noteArray[adjValue];
     let noteLength = time.note(note).time;
     let display = time.note(note).display;
     sample.loopLength = noteLength * grainSampler.playbackRate;
-    console.log(display)
     grainSampler.loopEnd = sample.loopEnd();
+    param = "length  " + display;
+    getParamDisplay(param);
     // console.log("start " + grainSampler.loopStart + " end " + grainSampler.loopEnd);
   }
 
@@ -420,23 +431,27 @@ function App() {
 
   const upPad = () => {
     setDPad(img.btn.dUp);
+    let param;
+
     if (mode === "default") {
       grainSampler.detune += 100;
-      getParamDisplay("detune " + grainSampler.detune);
+      param = "detune " + grainSampler.detune;
     }
     else if (mode === "selectAudio") {
       // setDisplay(getScreenText("Loading..."))
       grainSampler.buffer = new Tone.Buffer(sound.prev());
-      setDisplay(getSoundList())
+      setDisplay(getSoundList());
     }
-
+    getParamDisplay(param);
 
   }
 
   const downPad = () => {
     setDPad(img.btn.dDown);
+    let param;
     if (mode === "default") {
       grainSampler.detune -= 100;
+      param = "detune " + grainSampler.detune;
     }
     else if (mode === "selectAudio") {
       // setDisplay(getScreenText("Loading..."))
@@ -446,7 +461,7 @@ function App() {
       setDisplay(getSoundList())
     }
 
-
+    getParamDisplay(param);
 
 
   }
@@ -454,6 +469,7 @@ function App() {
 
 
   const leftPad = () => {
+    let param;
     setDPad(img.btn.dLeft);
     if (grainSampler.playbackRate > playBackStep && grainSampler.reverse === false) {
 
@@ -467,15 +483,18 @@ function App() {
     }
     console.log(grainSampler.playbackRate)
     console.log(grainSampler.reverse)
-
+    grainSampler.reverse ? param = "< -" + grainSampler.playbackRate.toFixed(1) + "x": param = grainSampler.playbackRate.toFixed(1) + "x >";
+    
     //sets properites for the time based knobs that rely on playback rate
     knob.one.action(knob.one);
     knob.three.action(knob.three);
     knob.four.action(knob.four);
+    getParamDisplay(param);
 
   }
 
   const rightPad = () => {
+    let param;
     setDPad(img.btn.dRight);
     if (grainSampler.playbackRate > playBackStep && grainSampler.reverse === true) {
       grainSampler.playbackRate -= playBackStep;
@@ -486,11 +505,14 @@ function App() {
     else {
       grainSampler.playbackRate += playBackStep;
     }
-    console.log(grainSampler.playbackRate)
+    
+    grainSampler.reverse ? param = "< -" + grainSampler.playbackRate.toFixed(1) + "x": param = grainSampler.playbackRate.toFixed(1) + "x >";
+    
     console.log(grainSampler.reverse)
     knob.one.action(knob.one);
     knob.three.action(knob.three);
     knob.four.action(knob.four);
+    getParamDisplay(param);
 
 
   }
@@ -498,8 +520,10 @@ function App() {
 
 
   const selClick = () => {
+    let param;
     setMode(screen.next());
-    console.log(mode)
+    param = mode;
+    getParamDisplay(param);
     // setMode(selectMode());
   }
 
