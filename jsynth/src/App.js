@@ -7,6 +7,7 @@ import { img } from "./images"
 
 import './App.css';
 
+
 //import AudioGraph from "./graph.js"
 import FlexGraph, { DrawShapesGraph, LineMarkGraph } from "./flexgraph.js"
 
@@ -534,7 +535,7 @@ function App() {
 
   return (
     <div>
-
+     
 
       <div className="grainboi" style={{ position: "absolute", width: appStyles.gameWidth(), height: appStyles.gameHeight() }}>
 
