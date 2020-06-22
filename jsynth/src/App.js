@@ -4,6 +4,7 @@ import C1 from "./samples/p.wav";
 
 import "./input-knobs-master/input-knobs.js"
 import { img } from "./images"
+import MidiInput, { midiPatch }from './midi.js'
 
 import './App.css';
 
@@ -535,8 +536,7 @@ function App() {
 
   return (
     <div>
-     
-
+      <MidiInput/>
       <div className="grainboi" style={{ position: "absolute", width: appStyles.gameWidth(), height: appStyles.gameHeight() }}>
 
 
