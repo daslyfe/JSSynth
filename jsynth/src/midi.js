@@ -20,16 +20,20 @@ function MidiInput() {
                     {options}
                 </select>
             )
+        },
+        activeNote: {number: 60, name: "C", octave: 4},
+        activeDetune: function() {
+            return (this.activeNote.number - 60) * 100;
         }
+
     });
 
     function handleInputSelect(midiName) {
         const input = WebMidi.getInputByName(midiName);
         input.addListener('noteon', 'all',
             function (e) {
-                midiPatch.activeNote = e.note
-                console.log(midiPatch.activeNote);
-                console.log(midiPatch.activeDetune());
+                // midiPatch.activeNote = e.note
+                setMidi({ ...midi, activeNote: e.note });
             }
         );
 
@@ -40,7 +44,8 @@ function MidiInput() {
             }
         );
     }
-
+    console.log(midi.activeNote);
+    console.log(midi.activeDetune());
     const midiStart = React.useEffect(() => {
         WebMidi.enable(err => {
             const inputs = WebMidi.inputs;
@@ -53,7 +58,7 @@ function MidiInput() {
 
     }, [])
 
-    return midi.createSelector()
+    return midi;
 }
 
 

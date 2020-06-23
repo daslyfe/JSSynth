@@ -66,7 +66,8 @@ let sound = {
     if (currentFile) {
       return currentFile.path;
     }
-  }
+  },
+  detune: 0,
 }
 
 
@@ -205,7 +206,7 @@ const grainSampler = new Tone.GrainPlayer({
 // })
 // let convolver = new Tone.Convolver(buffer2)
 // convolver.wet.value = 0
-
+// midiPatch.activeNote.connect(grainSampler);
 grainSampler.connect(pitchShift);
 grainSampler.connect(pitchMix, 0, 0);
 pitchShift.connect(pitchMix, 0, 1);
@@ -257,8 +258,14 @@ function App() {
   let topKnobs = [];
 
   useEffect(() => {
+
     // window.addEventListener("resize", updateWidthAndHeight);
   }, []);
+
+  const midiInput = MidiInput();
+  const selector = midiInput.createSelector();
+  
+
 
   function AddFile() {
     let fileUploadRef = React.createRef();
@@ -436,7 +443,7 @@ function App() {
     let param;
 
     if (mode === "default") {
-      grainSampler.detune += 100;
+      sound.detune += 100;
       param = "detune " + grainSampler.detune;
     }
     else if (mode === "selectAudio") {
@@ -452,7 +459,7 @@ function App() {
     setDPad(img.btn.dDown);
     let param;
     if (mode === "default") {
-      grainSampler.detune -= 100;
+      sound.detune -= 100;
       param = "detune " + grainSampler.detune;
     }
     else if (mode === "selectAudio") {
@@ -468,7 +475,7 @@ function App() {
 
   }
   let playBackStep = .5;
-
+  grainSampler.detune = midiInput.activeDetune() + sound.detune;
 
   const leftPad = () => {
     let param;
@@ -533,10 +540,12 @@ function App() {
     handleStart();
   }
 
+  
+  
 
   return (
     <div>
-      <MidiInput/>
+      {selector}
       <div className="grainboi" style={{ position: "absolute", width: appStyles.gameWidth(), height: appStyles.gameHeight() }}>
 
 
