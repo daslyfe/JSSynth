@@ -5,6 +5,7 @@ import C1 from "./samples/p.wav";
 import "./input-knobs-master/input-knobs.js"
 import { img } from "./images"
 import MidiInput, { midiPatch }from './midi.js'
+import VideoSynth from './sketch'
 
 import './App.css';
 
@@ -183,7 +184,7 @@ let pitchShift = new Tone.PitchShift(
 
 
 let fade = .5;
-const grainSampler = new Tone.GrainPlayer({
+export const grainSampler = new Tone.GrainPlayer({
   url: activeBuffer,
   loop: true,
   playbackRate: 1,
@@ -244,7 +245,7 @@ function App() {
   const [width, setWidth] = React.useState(appStyles.canvasWidth);
   const [height, setHeight] = React.useState(appStyles.canvasHeight);
 
-  const [Display, setDisplay] = React.useState(<svg className="screen-text-wrapper" viewBox="0 0 100 5"><text className="screen-text" x="0" y="4">GrainBoy</text></svg>);
+  const [Display, setDisplay] = React.useState(VideoSynth());
   const [paramDisplay, setParamDisplay] = React.useState()
   const [dPad, setDPad] = React.useState(img.btn.dPad);
 
@@ -444,7 +445,7 @@ function App() {
 
     if (mode === "default") {
       sound.detune += 100;
-      param = "detune " + grainSampler.detune;
+      param = "detune " + sound.detune;
     }
     else if (mode === "selectAudio") {
       // setDisplay(getScreenText("Loading..."))
@@ -460,7 +461,7 @@ function App() {
     let param;
     if (mode === "default") {
       sound.detune -= 100;
-      param = "detune " + grainSampler.detune;
+      param = "detune " + sound.detune;
     }
     else if (mode === "selectAudio") {
       // setDisplay(getScreenText("Loading..."))
@@ -545,7 +546,7 @@ function App() {
 
   return (
     <div>
-      {selector}
+      {/* {selector} */}
       <div className="grainboi" style={{ position: "absolute", width: appStyles.gameWidth(), height: appStyles.gameHeight() }}>
 
 

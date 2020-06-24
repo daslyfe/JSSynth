@@ -2,17 +2,17 @@ import WebMidi from 'webmidi';
 import React from 'react';
 
 export const midiPatch = {
-    activeNote: {number: 60, name: "C", octave: 4},
-    activeDetune: function() {
+    activeNote: { number: 60, name: "C", octave: 4 },
+    activeDetune: function () {
         return (this.activeNote.number - 60) * 100;
     }
 }
-
+let inputs = [];
 function MidiInput() {
 
     const [midi, setMidi] = React.useState({
-        inputs: [],
-        createSelector: function () {
+        inputs: WebMidi.inputs,
+        createSelector() {
             const getOption = input => <option key={input.name} value={input.name}>{input.name}</option>
             const options = this.inputs.map(getOption);
             return (
@@ -21,19 +21,21 @@ function MidiInput() {
                 </select>
             )
         },
-        activeNote: {number: 60, name: "C", octave: 4},
-        activeDetune: function() {
+        activeNote: { number: 60, name: "C", octave: 4 },
+        activeDetune: function () {
             return (this.activeNote.number - 60) * 100;
         }
 
     });
 
-    function handleInputSelect(midiName) {
+    const handleInputSelect = (midiName) => {
         const input = WebMidi.getInputByName(midiName);
         input.addListener('noteon', 'all',
             function (e) {
+                console.log(midi)
                 // midiPatch.activeNote = e.note
                 setMidi({ ...midi, activeNote: e.note });
+            
             }
         );
 
@@ -44,19 +46,19 @@ function MidiInput() {
             }
         );
     }
+
+ 
     console.log(midi.activeNote);
     console.log(midi.activeDetune());
     const midiStart = React.useEffect(() => {
         WebMidi.enable(err => {
-            const inputs = WebMidi.inputs;
             //these two lines enable all inputs by default
             const enableAll = input => handleInputSelect(input.name);
-            inputs.map(enableAll);
-
-            setMidi({ ...midi, inputs: inputs })
+            midi.inputs.map(enableAll);
+            setMidi({ ...midi, inputs: midi.inputs })
+            
         })
-
-    }, [])
+    }, [midi])
 
     return midi;
 }
