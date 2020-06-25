@@ -244,6 +244,33 @@ function App() {
   const [mode, setMode] = React.useState("default");
   const [width, setWidth] = React.useState(appStyles.canvasWidth);
   const [height, setHeight] = React.useState(appStyles.canvasHeight);
+  const [disp, setDispl] = React.useState ({
+    mode: {
+      Default: function() { return VideoSynth() },
+      Select_Audio: function() { return getSoundList()}
+    },
+    selected: 'Default',
+    screen() {
+      return this.mode[this.selected](); 
+    },
+    next: function () {
+      // this.selected = "Default" ? "SelectAudio": "Default";
+      if (this.selected === "Default") {
+        this.selected = "Select_Audio";
+      }
+      else {
+        this.selected = "Default";
+      }
+
+   
+
+    },
+    
+    select: function(mode) {
+      if (mode) this.selected = mode;
+    }
+    
+  })
 
   const [Display, setDisplay] = React.useState(VideoSynth());
   const [paramDisplay, setParamDisplay] = React.useState()
@@ -266,7 +293,6 @@ function App() {
   const midiInput = MidiInput();
   const selector = midiInput.createSelector();
   
-
 
   function AddFile() {
     let fileUploadRef = React.createRef();
@@ -291,7 +317,9 @@ function App() {
     )
   }
 
-
+//  const getDisplay = (mode) => {
+//     mode === "next"? 
+//  }
 
 
 
@@ -531,8 +559,9 @@ function App() {
 
   const selClick = () => {
     let param;
-    setMode(screen.next());
-    param = mode;
+    disp.next();
+    // mode === "default" ? setDisplay(VideoSynth()): 
+    param = disp.selected;
     getParamDisplay(param);
     // setMode(selectMode());
   }
@@ -551,7 +580,7 @@ function App() {
 
 
         <div className="display">
-          {Display}
+          {disp.screen()}
           {paramDisplay}
           {AddFile()}
         </div>
