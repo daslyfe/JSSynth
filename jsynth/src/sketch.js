@@ -2,26 +2,26 @@ import React, { Component } from "react";
 import Sketch from "react-p5";
 import Tone from "tone";
 import { grainSampler } from './App';
+import Modules from './modules';
 
-let FFT = new Tone.FFT({
-    size: 16
-})
+const FFT = Modules.FFT;
+
 let x = 100;
 let y = 125;
 
 Math.clamp = (val, min, max) => val < min ? min : val > max ? max : val;
-console.log("clamp " + Math.clamp(-200, -150, 150));
+
 
 
 function VideoSynth() {
-    let firstRun = React.useEffect(() => {
+    // let firstRun = React.useEffect(() => {
 
-        grainSampler.connect(FFT);
-    }, [])
+    //     grainSampler.connect(FFT);
+    // }, [])
 
 
 
-    console.log(x)
+    // console.log(x)
 
     let setup = (p5, canvasParentRef) => {
         p5.createCanvas(500, 500).parent(canvasParentRef); // use parent to render canvas in this ref (without that p5 render this canvas outside your component)
@@ -31,7 +31,7 @@ function VideoSynth() {
         let fftArray = FFT.getValue();
         // let fftVal = parseFloat(fftArray[10]);
         let fftVal = Math.clamp(fftArray[14], -150, 150) * -1
-        console.log(fftVal)
+        // console.log(fftVal)
         y = fftVal;
         x = fftVal;
         p5.ellipse(150, 150, x, y);

@@ -1,11 +1,11 @@
 import React, { useEffect, useState, useRef, Component } from 'react';
 import Tone from "tone";
-import C1 from "./samples/p.wav";
-
 import "./input-knobs-master/input-knobs.js"
 import { img } from "./images"
 import MidiInput, { midiPatch }from './midi.js'
-import VideoSynth from './sketch'
+import VideoSynth from './sketch';
+import Modules from './modules';
+import SoundData from './soundData';
 
 import './App.css';
 
@@ -13,66 +13,12 @@ import './App.css';
 //import AudioGraph from "./graph.js"
 import FlexGraph, { DrawShapesGraph, LineMarkGraph } from "./flexgraph.js"
 
-
-// function(sel) {for (let i = 1; i < this.length; i++) {console.log("ran"); i === sel ? this.sel = true : this.sel = false; }},
-let activeBuffer = new Tone.Buffer(C1);
-// let sound = [];
-let sound = {
-  files: {
-    0: []
-  },
-  pageMax: 14,
-  currentPage: 0,
-  selected: 0,
-  next: function () {
-    let numPages = Object.keys(this.files).length;
-    let numFiles = this.files[this.currentPage].length;
-    if (numPages <= 1) {
-      this.selected = (this.selected + 1) % numFiles;
-    }
-    else {
-      if (this.selected >= numFiles - 1) {
-        this.currentPage = (this.currentPage + 1) % numPages;
-        this.selected = 0;
-      }
-      else {
-        this.selected += 1;
-      }
-    }
-    console.log(this.currentPage + " " + this.selected)
-    let currentFile = this.files[this.currentPage][this.selected];
-    if (currentFile) {
-      return currentFile.path;
-    }
-  },
-  prev: function () {
-    let numPages = Object.keys(this.files).length;
-    let numFiles = this.files[this.currentPage].length;
-    if (numPages <= 1) {
-      this.selected = (this.selected - 1) % (numFiles);
-      if (this.selected < 0) this.selected = numFiles - 1;
-    }
-    else {
-      if (this.selected <= 0) {
-        this.currentPage = (this.currentPage - 1) % numPages;
-        if (this.currentPage < 0) this.currentPage = numPages - 1;
-        numFiles = this.files[this.currentPage].length;
-        this.selected = numFiles - 1;
-      }
-      else {
-        this.selected -= 1;
-      }
-    }
-    let currentFile = this.files[this.currentPage][this.selected];
-    if (currentFile) {
-      return currentFile.path;
-    }
-  },
-  detune: 0,
-}
+const grainSampler = Modules.grainSampler;
+const filter = Modules.filter;
+const sound = SoundData;
 
 
-export var GrainBuffer = null;
+
 
 export const knob = {
   one: { midi: 0, val: 0 },
@@ -85,7 +31,7 @@ export const knob = {
 export const sample = {
   loopStart: 0,
   loopLength: 0,
-  loopEnd: function () { return (this.loopStart + this.loopLength) % activeBuffer.duration },
+  loopEnd: function () { return (this.loopStart + this.loopLength) % grainSampler.buffer.duration },
   playbackRate: 0,
 }
 
@@ -153,83 +99,7 @@ function drawY(num) {
   return num * mult;
 }
 
-
-
-const limiter = new Tone.Limiter(-6)
-
-
-
-// let fft = new Tone.FFT({size: 16});
-// fft.output.connect(limiter)
-let filter = new Tone.Filter(
-  {
-    type: "lowpass",
-    frequency: 17000,
-    rolloff: -24,
-    Q: 2,
-    gain: -12
-  }
-)
-const grainVol = new Tone.Volume(0);
-let pitchMix = new Tone.CrossFade();
-let pitchShift = new Tone.PitchShift(
-  {
-    pitch: 7,
-    windowSize: .4,
-    delayTime: 0,
-    feedback: .5
-  }
-);
-
-
-
-let fade = .5;
-export const grainSampler = new Tone.GrainPlayer({
-  url: activeBuffer,
-  loop: true,
-  playbackRate: 1,
-  grainSize: .1,
-  overlap: 0,
-  loopStart: 0,
-  loopEnd: 0,
-  reverse: false,
-  detune: 0,
-  volume: -6,
-  fadeIn: fade,
-  fadeOut: fade
-})
-
-// let vibrato = new Tone.Vibrato ({
-//   maxDelay : 0.005 ,
-//   frequency : 5 ,
-//   depth : 0.1 ,
-//   type : "sine"
-// })
-// let convolver = new Tone.Convolver(buffer2)
-// convolver.wet.value = 0
-// midiPatch.activeNote.connect(grainSampler);
-grainSampler.connect(pitchShift);
-grainSampler.connect(pitchMix, 0, 0);
-pitchShift.connect(pitchMix, 0, 1);
-pitchMix.connect(filter);
-
-// grainVol.connect(filter)
-// convolver.connect(filter);
-// vibrato.connect(filter);
-filter.connect(limiter);
-limiter.connect(Tone.Master);
-
 let paramTimer;
-
-const screen = {
-  mode: ["default", "selectAudio"],
-  selected: 0,
-  next: function () {
-    this.selected = (this.selected + 1) % this.mode.length;
-    return this.mode[this.selected];
-  }
-}
-
 
 function getScreenText(text, type) {
   if (type === "select") {
@@ -241,38 +111,19 @@ function getScreenText(text, type) {
 
 
 function App() {
-  const [mode, setMode] = React.useState("default");
   const [width, setWidth] = React.useState(appStyles.canvasWidth);
   const [height, setHeight] = React.useState(appStyles.canvasHeight);
-  const [disp, setDispl] = React.useState ({
-    mode: {
-      Default: function() { return VideoSynth() },
-      Select_Audio: function() { return getSoundList()}
-    },
+  const [disp, setDisp] = React.useState ({
     selected: 'Default',
-    screen() {
-      return this.mode[this.selected](); 
-    },
     next: function () {
-      // this.selected = "Default" ? "SelectAudio": "Default";
-      if (this.selected === "Default") {
-        this.selected = "Select_Audio";
-      }
-      else {
-        this.selected = "Default";
-      }
-
-   
-
+      this.selected === "Default" ? this.selected = "Select_Audio": this.selected = "Default";
     },
-    
-    select: function(mode) {
+    set: function(mode) {
       if (mode) this.selected = mode;
     }
     
   })
 
-  const [Display, setDisplay] = React.useState(VideoSynth());
   const [paramDisplay, setParamDisplay] = React.useState()
   const [dPad, setDPad] = React.useState(img.btn.dPad);
 
@@ -282,12 +133,29 @@ function App() {
     setWidth(appStyles.canvasWidth);
     setHeight(appStyles.canvasHeight);
   };
+  const getSoundList = () => {
+    let out = [];
+    for (let file in sound.files[sound.currentPage]) {
+
+      let fileList = sound.files[sound.currentPage];
+      if (fileList[file] === fileList[sound.selected]) {
+        out.push(getScreenText(fileList[file].name, "select"))
+      }
+      else {
+        out.push(getScreenText(fileList[file].name))
+      }
+    }
+    return out;
+  }
 
   let topKnobs = [];
 
-  useEffect(() => {
 
-    // window.addEventListener("resize", updateWidthAndHeight);
+const screen2 = disp.selected === "Default" ? VideoSynth(): getSoundList();
+
+
+  useEffect(() => {
+    Modules.patch()
   }, []);
 
   const midiInput = MidiInput();
@@ -296,7 +164,7 @@ function App() {
 
   function AddFile() {
     let fileUploadRef = React.createRef();
-    function setAudio(files) {
+    function pushAudio(files) {
       let file;
       let currentPage = 0;
       for (let i = 0; i < files.length; i++) {
@@ -311,25 +179,14 @@ function App() {
     }
     return (
       <div style={{ width: "100%", height: "100%" }}>
-        <input style={{ display: "none" }} ref={fileUploadRef} id="audio_file" type="file" multiple accept="audio/*" onChange={() => { console.log(fileUploadRef.current); setAudio(fileUploadRef.current.files); setDisplay(getSoundList()) }} />
+        <input style={{ display: "none" }} ref={fileUploadRef} id="audio_file" type="file" multiple accept="audio/*" onChange={() => { pushAudio(fileUploadRef.current.files); setDisp({...disp, selected: "Select_Audio"}); console.log(disp) }} />
         <input className="screen-button-overlay" type="button" onMouseDown={() => fileUploadRef.current.click()} />
       </div>
     )
   }
 
-//  const getDisplay = (mode) => {
-//     mode === "next"? 
-//  }
-
-
-
-
   const handleStart = () => {
     grainSampler.state === "stopped" ? grainSampler.start() : grainSampler.stop();
-    // GrainBuffer = grainSampler.buffer.toArray();
-
-
-    // grainSampler.buffer.toArray();
   };
 
   let getParamDisplay = (text) => {
@@ -452,33 +309,18 @@ function App() {
 
 
   }
-  const getSoundList = () => {
-    let out = [];
-    for (let file in sound.files[sound.currentPage]) {
 
-      let fileList = sound.files[sound.currentPage];
-      if (fileList[file] === fileList[sound.selected]) {
-        out.push(getScreenText(fileList[file].name, "select"))
-      }
-      else {
-        out.push(getScreenText(fileList[file].name))
-      }
-    }
-    return out;
-  }
 
   const upPad = () => {
     setDPad(img.btn.dUp);
     let param;
-
-    if (mode === "default") {
+    let mode = disp.selected;
+    if (mode === "Default") {
       sound.detune += 100;
       param = "detune " + sound.detune;
     }
-    else if (mode === "selectAudio") {
-      // setDisplay(getScreenText("Loading..."))
+    else if (mode === "Select_Audio") {
       grainSampler.buffer = new Tone.Buffer(sound.prev());
-      setDisplay(getSoundList());
     }
     getParamDisplay(param);
 
@@ -486,17 +328,14 @@ function App() {
 
   const downPad = () => {
     setDPad(img.btn.dDown);
+    let mode = disp.selected;
     let param;
-    if (mode === "default") {
+    if (mode === "Default") {
       sound.detune -= 100;
       param = "detune " + sound.detune;
     }
-    else if (mode === "selectAudio") {
-      // setDisplay(getScreenText("Loading..."))
+    else if (mode === "Select_Audio") {
       grainSampler.buffer = new Tone.Buffer(sound.next());
-
-
-      setDisplay(getSoundList())
     }
 
     getParamDisplay(param);
@@ -524,9 +363,9 @@ function App() {
     grainSampler.reverse ? param = "< -" + grainSampler.playbackRate.toFixed(1) + "x": param = grainSampler.playbackRate.toFixed(1) + "x >";
     
     //sets properites for the time based knobs that rely on playback rate
-    knob.one.action(knob.one);
-    knob.three.action(knob.three);
-    knob.four.action(knob.four);
+    // knob.one.action(knob.one);
+    // knob.three.action(knob.three);
+    // knob.four.action(knob.four);
     getParamDisplay(param);
 
   }
@@ -547,9 +386,9 @@ function App() {
     grainSampler.reverse ? param = "< -" + grainSampler.playbackRate.toFixed(1) + "x": param = grainSampler.playbackRate.toFixed(1) + "x >";
     
     console.log(grainSampler.reverse)
-    knob.one.action(knob.one);
-    knob.three.action(knob.three);
-    knob.four.action(knob.four);
+    // knob.one.action(knob.one);
+    // knob.three.action(knob.three);
+    // knob.four.action(knob.four);
     getParamDisplay(param);
 
 
@@ -570,27 +409,19 @@ function App() {
     handleStart();
   }
 
-  
-  
-
   return (
     <div>
       {/* {selector} */}
       <div className="grainboi" style={{ position: "absolute", width: appStyles.gameWidth(), height: appStyles.gameHeight() }}>
-
-
         <div className="display">
-          {disp.screen()}
+          {screen2}
           {paramDisplay}
           {AddFile()}
         </div>
-
         <div className="knob-bar">
           {topKnobs}
         </div>
-
         <div className="button-area">
-
           <div className="btn-circle"></div>
           <div style={{ right: "8.8%", top: "21.2%" }} className="btn-circle"></div>
           <button className="a-button" onMouseDown={aClick}></button>
@@ -603,15 +434,10 @@ function App() {
             <button className="d-btn" style={{ bottom: "33%", left: 0 }} onMouseDown={leftPad} onMouseUp={() => setDPad(img.btn.dPad)}></button>
             <button className="d-btn" style={{ bottom: "33%", right: 0 }} onMouseDown={rightPad} onMouseUp={() => setDPad(img.btn.dPad)}></button>
           </div>
-
           <button className="sel-button" style={{ left: "33%" }} onMouseDown={selClick}></button>
           <button className="sel-button" style={{ right: "33%" }} onMouseDown={startClick}></button>
         </div>
-
       </div>
-
-
-
     </div>
   );
 };
