@@ -145,7 +145,7 @@ var caclulatePercentage = function caclulatePercentage(_ref) {
   let out = clamp(0, 1, (y/100) + lastHeldValue) ;
     // let out = clamp(0, 1, angle / angleRange)
 
-    console.log(_ref);
+
 
     return out;
   // } else {
@@ -338,7 +338,7 @@ var reducer = function reducer(onChange) {
 };
 
 var useUpdate = (function (_ref3) {
-  console.log(_ref3)
+
   var min = _ref3.min,
       max = _ref3.max,
       initialValue = _ref3.initialValue,

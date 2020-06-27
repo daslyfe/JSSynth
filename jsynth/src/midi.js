@@ -32,7 +32,7 @@ function MidiInput() {
         const input = WebMidi.getInputByName(midiName);
         input.addListener('noteon', 'all',
             function (e) {
-                console.log(midi)
+              
                 // midiPatch.activeNote = e.note
                 setMidi({ ...midi, activeNote: e.note });
             
@@ -42,14 +42,12 @@ function MidiInput() {
         // type, midi channel, thing to do
         input.addListener('pitchbend', 'all',
             function (e) {
-                console.log("Received 'pitchbend' message.", e);
+        
             }
         );
     }
 
- 
-    console.log(midi.activeNote);
-    console.log(midi.activeDetune());
+
     const midiStart = React.useEffect(() => {
         WebMidi.enable(err => {
             //these two lines enable all inputs by default

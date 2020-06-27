@@ -18,11 +18,10 @@ function AudioGraph() {
                 idk +=1;
                 data.push({x: i, y: leftChannel[i]} )
             }
-            console.log("bsbsbsbasubasubas");
-            console.log("graph data " + data[0].y);
+       
         //},[]);
 
-        console.log("idk " + idk);
+      
     }       
     
     

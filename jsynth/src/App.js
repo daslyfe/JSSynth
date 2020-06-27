@@ -358,8 +358,7 @@ const screen2 = disp.selected === "Default" ? VideoSynth(): getSoundList();
     else {
       grainSampler.playbackRate += playBackStep;
     }
-    console.log(grainSampler.playbackRate)
-    console.log(grainSampler.reverse)
+
     grainSampler.reverse ? param = "< -" + grainSampler.playbackRate.toFixed(1) + "x": param = grainSampler.playbackRate.toFixed(1) + "x >";
     
     //sets properites for the time based knobs that rely on playback rate
@@ -385,7 +384,7 @@ const screen2 = disp.selected === "Default" ? VideoSynth(): getSoundList();
     
     grainSampler.reverse ? param = "< -" + grainSampler.playbackRate.toFixed(1) + "x": param = grainSampler.playbackRate.toFixed(1) + "x >";
     
-    console.log(grainSampler.reverse)
+   
     // knob.one.action(knob.one);
     // knob.three.action(knob.three);
     // knob.four.action(knob.four);

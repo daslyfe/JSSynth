@@ -5,9 +5,8 @@ function AudioPlayer() {
     let audioRef = React.createRef();
     function setAudio(files) {
         let file = URL.createObjectURL(files[0]); 
-        let buff = new Tone.Buffer(file);
-        console.log(buff)
-        console.log(files[0].name);
+        // let buff = new Tone.Buffer(file);
+
         
     } 
     return (

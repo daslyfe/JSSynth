@@ -41,30 +41,40 @@ function VideoSynth() {
     // };
 
     let t = 0;
+    let x = 0
+    let y = 0;
 
     let draw = (p5, canvasParentRef) => {
         setup(p5, ref)
-      
+
         // let x;
         // let y;
-        let fftArray = FFT.getValue();
-        let fftVal = Math.clamp(fftArray[10], -150, 150) * -1
-        console.log(fftVal);
+        // let fftArray = FFT.getValue();
+        // let fftVal = Math.clamp(fftArray[10], -150, 150) * -1
+        // console.log(fftVal);
         let scale = 3; //zoom of effect between 1.5 and 7
-        let fragmentation = 7; //between 1 and 10
-        let busyness = 509 ; //between 20 & 10000 smaller == busier;
-        let density =  40//between 10 and 1000;
+        let fragmentation = 1.8; //between 1 and 10
+        let busyness = 200; //between 20 & 10000 smaller == busier;
+        let density = 100//between 10 and 1000;
         let tilt = 0; //between 0 and 2
-        let shift = 1; //between -1 and 1.2
-
-        t+= -1;
+        let shift = 0; //between -4 and 4
+        let speed = .2
+        // t > 100 ? t = 0: t = t
+        t +=1;
         p5.scale(scale)
+        // for (let y = 0; y < 300; y++) {
+        //     for (let x = 0; x < 300; x++) { 
+        //         (t + p5.abs(((x )+ (y * shift) -t)^(x - y  + t)) ** fragmentation) % busyness < density && p5.point(x,  y-(x * tilt))
+        //     }
+        // }
         for (let y = 0; y < 300; y++) {
+        
             for (let x = 0; x < 300; x++) {
-                (t + p5.abs(((x )+ (y * shift) -t) ^ (x - y  + t)) ** fragmentation) % busyness < density && p5.point(x,  y-(x * tilt))
+                if (((t * speed) + p5.abs(((x) + (y ^ shift) & (t & x)) & (x-y  )) ** fragmentation) % busyness < density)
+                
+                p5.point(x, y);
             }
         }
-
 
     };
 
