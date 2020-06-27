@@ -21,7 +21,6 @@ const SoundData = {
           this.selected += 1;
         }
       }
-      console.log(this.currentPage + " " + this.selected)
       let currentFile = this.files[this.currentPage][this.selected];
       if (currentFile) {
         return currentFile.path;
