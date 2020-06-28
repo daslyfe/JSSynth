@@ -7,6 +7,7 @@ import VideoSynth from './sketch';
 import Modules from './modules';
 import SoundData from './soundData';
 
+
 import './App.css';
 
 
@@ -19,6 +20,7 @@ const sound = SoundData;
 
 
 
+const videoSynth = VideoSynth();
 
 export const knob = {
   one: { midi: 0, val: 0 },
@@ -151,7 +153,7 @@ function App() {
   let topKnobs = [];
 
 
-const screen2 = disp.selected === "Default" ? VideoSynth(): getSoundList();
+const screen2 = disp.selected === "Default" ? videoSynth: getSoundList();
 
 
   useEffect(() => {
