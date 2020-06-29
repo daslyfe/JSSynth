@@ -1,5 +1,5 @@
 import Tone from "tone";
-import C1 from "./samples/p.wav";
+import C1 from "./samples/drloop.wav";
 
 let fade = .5;
 const Modules = {
@@ -12,7 +12,7 @@ const Modules = {
         gain: -12
     }),
     grainVol: new Tone.Volume(0),
-    pitchMix: new Tone.CrossFade(),
+    pitchMix: new Tone.CrossFade([0]),
     pitchShift: new Tone.PitchShift({
         pitch: 7,
         windowSize: .4,
@@ -34,16 +34,15 @@ const Modules = {
         fadeOut: fade
     }),
     FFT: new Tone.FFT({
-        size: 16
+        size:  16
     }),
     patch() {
         this.grainSampler.connect(this.pitchShift);
-        this.grainSampler.connect(this.pitchMix, 0, 0);
-        
+        this.grainSampler.connect(this.pitchMix, 0, 0);     
         this.pitchShift.connect(this.pitchMix, 0, 1);
         this.pitchMix.connect(this.filter);
         this.filter.connect(this.limiter);
-        this.filter.connect(this.FFT);
+        this.grainSampler.connect(this.FFT);
         this.limiter.connect(Tone.Master);
     }
 }

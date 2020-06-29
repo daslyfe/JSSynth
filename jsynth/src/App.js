@@ -2,10 +2,11 @@ import React, { useEffect, useState, useRef, Component } from 'react';
 import Tone from "tone";
 import "./input-knobs-master/input-knobs.js"
 import { img } from "./images"
-import MidiInput, { midiPatch }from './midi.js'
+import MidiInput, { midiPatch } from './midi.js'
 import VideoSynth from './sketch';
 import Modules from './modules';
 import SoundData from './soundData';
+import Time from "./time";
 
 
 import './App.css';
@@ -19,7 +20,6 @@ const filter = Modules.filter;
 const sound = SoundData;
 
 
-
 const videoSynth = VideoSynth();
 
 export const knob = {
@@ -28,6 +28,9 @@ export const knob = {
   three: { midi: 0, val: 0 },
   four: { midi: 0, val: 0 },
   five: { midi: 0, val: 0 },
+  six: { midi: 0, val: 0 },
+  seven: { midi: 0, val: 0 },
+  eight: { midi: 0, val: 0 },
 }
 
 export const sample = {
@@ -38,38 +41,10 @@ export const sample = {
 }
 
 
+const time = Time;
+const noteArray = time.noteArray;
 
-let noteArray = [
-  [1 / 3, true], [1 / 3, false], [1 / 2, false],
-  [1, true], [1, false], [2, true], [2, false],
-  [3, false], [4, true], [4, false],
-  [6, false], [8, true], [8, false],
-  [12, false], [16, true], [16, false],
-  [32, true], [32, false]
-];
 
-const time = {
-  bpm: 124,
-  note: function (noteData) {
-    let note = noteData[0];
-    let dot = noteData[1];
-    let out = 60 / this.bpm / note
-
-    let display = null
-    if (note >= 1) {
-      display = "1/" + note;
-    }
-    else {
-      display = 1 / note + "/" + 1;
-    }
-    if (dot) {
-      out += out / 2;
-      display += "."
-    }
-
-    return { time: out, display: display };
-  },
-}
 
 export const appStyles = {
   canvasWidth: window.innerWidth,
@@ -111,23 +86,56 @@ function getScreenText(text, type) {
 
 }
 
+function GetKnob(color, dotColor, name) {
+  let startValue = knob[name].midi;
+
+
+  return (
+    <input key={name} value={startValue} style={{ padding: 0, display: 'inline-block', marginLeft: "5%" }} type="range" className="input-knob"
+      data-bgcolor={color}
+      data-fgcolor={dotColor}
+      data-diameter={parseInt(appStyles.gameWidth() / 7)}
+      min={0}
+      max={127}
+      name={name}
+    />
+  )
+}
+
+
+const grainKnobs = () => [
+  GetKnob("#7AB2E3", "#0071BC", "one"),
+  GetKnob("#61CD77", "#009245", "two"),
+  GetKnob("#FFFEFF", "#CCCCCC", "three"),
+  GetKnob("#FE6D2C", "#BD5226", "four"),
+]
+
+const fxKnobs = () => [
+  GetKnob("#7AB2E3", "#000000", "five"),
+  GetKnob("#61CD77", "#009245", "six"),
+  GetKnob("#FFFEFF", "#CCCCCC", "seven"),
+  GetKnob("#FE6D2C", "#BD5226", "eight"),
+]
 
 function App() {
   const [width, setWidth] = React.useState(appStyles.canvasWidth);
   const [height, setHeight] = React.useState(appStyles.canvasHeight);
-  const [disp, setDisp] = React.useState ({
+  const [disp, setDisp] = React.useState({
     selected: 'Default',
     next: function () {
-      this.selected === "Default" ? this.selected = "Select_Audio": this.selected = "Default";
+      this.selected === "Default" ? this.selected = "Select_Audio" : this.selected = "Default";
     },
-    set: function(mode) {
+    set: function (mode) {
       if (mode) this.selected = mode;
     }
-    
+
   })
 
   const [paramDisplay, setParamDisplay] = React.useState()
   const [dPad, setDPad] = React.useState(img.btn.dPad);
+  const [topKnobs, setTopKnobs] = React.useState(grainKnobs);
+
+
 
   const updateWidthAndHeight = () => {
     appStyles.canvasWidth = window.innerWidth;
@@ -150,10 +158,10 @@ function App() {
     return out;
   }
 
-  let topKnobs = [];
 
 
-const screen2 = disp.selected === "Default" ? videoSynth: getSoundList();
+
+  const screen2 = disp.selected === "Default" ? videoSynth : getSoundList();
 
 
   useEffect(() => {
@@ -162,7 +170,7 @@ const screen2 = disp.selected === "Default" ? videoSynth: getSoundList();
 
   const midiInput = MidiInput();
   const selector = midiInput.createSelector();
-  
+
 
   function AddFile() {
     let fileUploadRef = React.createRef();
@@ -181,7 +189,7 @@ const screen2 = disp.selected === "Default" ? videoSynth: getSoundList();
     }
     return (
       <div style={{ width: "100%", height: "100%" }}>
-        <input style={{ display: "none" }} ref={fileUploadRef} id="audio_file" type="file" multiple accept="audio/*" onChange={() => { pushAudio(fileUploadRef.current.files); setDisp({...disp, selected: "Select_Audio"}); console.log(disp) }} />
+        <input style={{ display: "none" }} ref={fileUploadRef} id="audio_file" type="file" multiple accept="audio/*" onChange={() => { pushAudio(fileUploadRef.current.files); setDisp({ ...disp, selected: "Select_Audio" }); console.log(disp) }} />
         <input className="screen-button-overlay" type="button" onMouseDown={() => fileUploadRef.current.click()} />
       </div>
     )
@@ -207,42 +215,42 @@ const screen2 = disp.selected === "Default" ? videoSynth: getSoundList();
     }
   }
 
-  let GetKnob = (color, dotColor, name) => {
-    return (
-      <input key={color} style={{ padding: 0, display: 'inline-block', marginLeft: "5%" }} type="range" className="input-knob"
-        data-bgcolor={color}
-        data-fgcolor={dotColor}
-        data-diameter={parseInt(appStyles.gameWidth() / 7)}
-        min={0}
-        max={127}
-        name={name}
-      />
-    )
+
+
+  let refreshKnobs = () => {
+    knob.one.action();
+    // knob.two.action();
+    // knob.three.action();
+    knob.four.action();
+    // knob.five.action();
+    // knob.six.action();
+    // knob.seven.action();
+    // knob.eight.action();
   }
-  topKnobs.push(GetKnob("#7AB2E3", "#0071BC", "one"));
-  topKnobs.push(GetKnob("#61CD77", "#009245", "two"))
-  topKnobs.push(GetKnob("#FFFEFF", "#CCCCCC", "three"))
-  topKnobs.push(GetKnob("#FE6D2C", "#BD5226", "four"))
   //topKnobs.push(GetKnob("gray", "five"))
 
 
   knob.one.action = () => {
     let param
     let _knob = knob.one;
-
     let adjValue = parseInt(_knob.val * (noteArray.length - 1));
     let note = noteArray[adjValue];
     let noteLength = time.note(note).time;
     let display = time.note(note).display;
+
     // grainSampler.playbackRate = _knob.val * 20;
+
+
     grainSampler.grainSize = noteLength * grainSampler.playbackRate;
-    param = "grain " + display
+    param = "grain " + display;
+
     getParamDisplay(param);
   }
 
   knob.two.action = () => {
     let param;
     let _knob = knob.two;
+
     let adjValue = 0;
     if (_knob.val < .8) {
       adjValue = parseInt(_knob.val * 10);
@@ -253,12 +261,12 @@ const screen2 = disp.selected === "Default" ? videoSynth: getSoundList();
 
     //change the volume to be even, volume change delayed to prevent glitching
     if (grainSampler.overlap === 0 && adjValue > 0) {
-      setTimeout(() => { grainSampler.volume.value = 7;}, 500)
+      setTimeout(() => { grainSampler.volume.value = 7; }, 500)
     }
     else if (adjValue === 0) {
       grainSampler.volume.value = -6;
     }
-    
+
     grainSampler.overlap = adjValue;
     param = "overlap " + grainSampler.overlap;
     getParamDisplay(param);
@@ -277,7 +285,7 @@ const screen2 = disp.selected === "Default" ? videoSynth: getSoundList();
 
   }
 
-  knob.four.action = () => {
+  knob.four.action = function () {
     let param;
     let _knob = knob.four;
     let adjValue = parseInt(_knob.val * (noteArray.length - 1));
@@ -301,17 +309,34 @@ const screen2 = disp.selected === "Default" ? videoSynth: getSoundList();
 
   }
 
+  knob.six.action = () => {
+  }
+
+  knob.seven.action = () => {
+  }
+
+  knob.eight.action = () => {
+  }
+
 
 
   const aClick = () => {
+    let param = "grain synth"
+    setTopKnobs(grainKnobs)
+    getParamDisplay(param);
+
 
   }
 
   const bClick = () => {
+    let param = "FX"
+    setTopKnobs(fxKnobs)
+
+    getParamDisplay(param);
 
 
   }
-
+  console.log(knob.one.val)
 
   const upPad = () => {
     setDPad(img.btn.dUp);
@@ -361,8 +386,8 @@ const screen2 = disp.selected === "Default" ? videoSynth: getSoundList();
       grainSampler.playbackRate += playBackStep;
     }
 
-    grainSampler.reverse ? param = "< -" + grainSampler.playbackRate.toFixed(1) + "x": param = grainSampler.playbackRate.toFixed(1) + "x >";
-    
+    grainSampler.reverse ? param = "< -" + grainSampler.playbackRate.toFixed(1) + "x" : param = grainSampler.playbackRate.toFixed(1) + "x >";
+    refreshKnobs();
     //sets properites for the time based knobs that rely on playback rate
     // knob.one.action(knob.one);
     // knob.three.action(knob.three);
@@ -383,10 +408,10 @@ const screen2 = disp.selected === "Default" ? videoSynth: getSoundList();
     else {
       grainSampler.playbackRate += playBackStep;
     }
-    
-    grainSampler.reverse ? param = "< -" + grainSampler.playbackRate.toFixed(1) + "x": param = grainSampler.playbackRate.toFixed(1) + "x >";
-    
-   
+
+    grainSampler.reverse ? param = "< -" + grainSampler.playbackRate.toFixed(1) + "x" : param = grainSampler.playbackRate.toFixed(1) + "x >";
+    refreshKnobs();
+
     // knob.one.action(knob.one);
     // knob.three.action(knob.three);
     // knob.four.action(knob.four);
