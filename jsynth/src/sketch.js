@@ -26,7 +26,7 @@ function VideoSynth() {
         p5.createCanvas(500, 500).parent(ref);
         p5.stroke('teal')
         p5.noSmooth();
-        
+
 
 
     };
@@ -47,10 +47,10 @@ function VideoSynth() {
     let lows = [];
     let mids = [];
     let highs = [];
-    let low= 0, middle = 0, high = 0;
+    let low = 0, middle = 0, high = 0;
 
- 
- 
+
+
 
 
     let draw = (p5) => {
@@ -62,30 +62,28 @@ function VideoSynth() {
         lows.push(fftArray[1] * -1);
         mids.push(fftArray[3] * -1);
         highs.push(fftArray[9] * -1)
-        if (lows.length >=5){
+        if (lows.length >= 5) {
 
-         lows.shift()
-         mids.shift()
-         highs.shift()
-     
+            lows.shift()
+            mids.shift()
+            highs.shift()
+
         }
-       
- 
+
+
         low = median(lows)
         middle = median(mids)
         high = median(highs)
-      
-        
 
-       
+
+
+
         // highMed = high;
 
-        
+
 
         for (let x = 0; x < 80; x++) {
             x < 33 ? p5.point(x, low) : x < 66 ? p5.point(x, middle) : p5.point(x, high);
-
-
         };
 
 

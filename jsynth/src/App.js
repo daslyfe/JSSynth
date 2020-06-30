@@ -17,10 +17,27 @@ import FlexGraph, { DrawShapesGraph, LineMarkGraph } from "./flexgraph.js"
 
 const grainSampler = Modules.grainSampler;
 const filter = Modules.filter;
+const pitchShift = Modules.pitchShift;
+const pitchMix = Modules.pitchMix;
+
 const sound = SoundData;
 
+Array.prototype.move = function (from, to) {
+  this.splice(to, 0, this.splice(from, 1)[0]);
+};
 
 const videoSynth = VideoSynth();
+
+const delayPitch = {
+  array: [-24, -17, -12, -5, 0, 7, 12, 19, 24],
+  nextPitch() { this.array.move(0, 8); return this.array[0] },
+  prevPitch() { this.array.move(8, 0); return this.array[0] },
+  selected() { return this.array[0] }
+}
+pitchShift.PitchArray = [-24, -17, -12, -5, 0, 7, 12, 19, 24];
+pitchShift.nextPitch = () => pitchShift.PitchArray.move(0, 8);
+pitchShift.prevPitch = () => pitchShift.PitchArray.move(8, 0);
+
 
 export const knob = {
   one: { midi: 0, val: 0 },
@@ -121,9 +138,9 @@ function App() {
   const [width, setWidth] = React.useState(appStyles.canvasWidth);
   const [height, setHeight] = React.useState(appStyles.canvasHeight);
   const [disp, setDisp] = React.useState({
-    selected: 'Default',
+    selected: 'fx',
     next: function () {
-      this.selected === "Default" ? this.selected = "Select_Audio" : this.selected = "Default";
+      this.selected === "Select_Audio" ? this.selected = "Default" : this.selected = "Select_Audio";
     },
     set: function (mode) {
       if (mode) this.selected = mode;
@@ -219,13 +236,7 @@ function App() {
 
   let refreshKnobs = () => {
     knob.one.action();
-    // knob.two.action();
-    // knob.three.action();
     knob.four.action();
-    // knob.five.action();
-    // knob.six.action();
-    // knob.seven.action();
-    // knob.eight.action();
   }
   //topKnobs.push(GetKnob("gray", "five"))
 
@@ -300,29 +311,51 @@ function App() {
   }
 
   knob.five.action = () => {
-
     let _knob = knob.five;
-
     let logVal = Math.pow((_knob.val + .38) * 5.2, 5);
     filter.frequency.value = .1 + logVal;
+    let param = "cutoff " + parseInt(filter.frequency.value);
+    getParamDisplay(param);
 
 
   }
 
   knob.six.action = () => {
+    let _knob = knob.six;
+    let q = filter.Q.value;
+    filter.Q.value = _knob.val * 10;
+    let param = "res " + q.toFixed(2);
+    getParamDisplay(param);
   }
 
   knob.seven.action = () => {
+    const _knob = knob.seven;
+
+    pitchMix.fade.value = _knob.val <= .04 ? 0 : _knob.val;
+    pitchShift.feedback.value = _knob.val / 2;
+    let param = pitchMix.fade.value.toFixed(2);
+    getParamDisplay("wet " + param)
   }
 
   knob.eight.action = () => {
+    const _knob = knob.eight;
+
+    let size = parseInt(_knob.val * 5)
+
+    pitchShift.delayTime.value = size;
+
+
+    let param = pitchShift.delayTime;
+    getParamDisplay("delay " + param);
+
   }
 
 
 
   const aClick = () => {
     let param = "grain synth"
-    setTopKnobs(grainKnobs)
+    setTopKnobs(grainKnobs);
+    disp.set("Default");
     getParamDisplay(param);
 
 
@@ -331,12 +364,12 @@ function App() {
   const bClick = () => {
     let param = "FX"
     setTopKnobs(fxKnobs)
-
+    disp.set("fx");
     getParamDisplay(param);
 
 
   }
-  console.log(knob.one.val)
+
 
   const upPad = () => {
     setDPad(img.btn.dUp);
@@ -349,6 +382,11 @@ function App() {
     else if (mode === "Select_Audio") {
       grainSampler.buffer = new Tone.Buffer(sound.prev());
     }
+    else if (mode = "fx") {
+      pitchShift.pitch = delayPitch.nextPitch();
+      param = "sparkle tune " + pitchShift.pitch.toString();
+    }
+
     getParamDisplay(param);
 
   }
@@ -359,10 +397,14 @@ function App() {
     let param;
     if (mode === "Default") {
       sound.detune -= 100;
-      param = "detune " + sound.detune;
+      param = "delay " + sound.detune;
     }
     else if (mode === "Select_Audio") {
       grainSampler.buffer = new Tone.Buffer(sound.next());
+    }
+    else if (mode = "fx") {
+      pitchShift.pitch = delayPitch.prevPitch();
+      param = "delay tune " + pitchShift.pitch.toString();
     }
 
     getParamDisplay(param);
@@ -375,46 +417,65 @@ function App() {
   const leftPad = () => {
     let param;
     setDPad(img.btn.dLeft);
-    if (grainSampler.playbackRate > playBackStep && grainSampler.reverse === false) {
+    let mode = disp.selected;
+    if (mode === "Default") {
+      if (grainSampler.playbackRate > playBackStep && grainSampler.reverse === false) {
 
-      grainSampler.playbackRate -= playBackStep;
+        grainSampler.playbackRate -= playBackStep;
+      }
+      else if (grainSampler.playbackRate <= playBackStep && grainSampler.reverse === false) {
+        grainSampler.reverse = true;
+      }
+      else {
+        grainSampler.playbackRate += playBackStep;
+      }
+      grainSampler.reverse ? param = "< -" + grainSampler.playbackRate.toFixed(1) + "x" : param = grainSampler.playbackRate.toFixed(1) + "x >";
+      refreshKnobs();
     }
-    else if (grainSampler.playbackRate <= playBackStep && grainSampler.reverse === false) {
-      grainSampler.reverse = true;
-    }
-    else {
-      grainSampler.playbackRate += playBackStep;
-    }
+    else if (mode === "Select_Audio") {
+      time.bpm -= 1;
+      refreshKnobs()
+      param = time.bpm;
 
-    grainSampler.reverse ? param = "< -" + grainSampler.playbackRate.toFixed(1) + "x" : param = grainSampler.playbackRate.toFixed(1) + "x >";
-    refreshKnobs();
-    //sets properites for the time based knobs that rely on playback rate
-    // knob.one.action(knob.one);
-    // knob.three.action(knob.three);
-    // knob.four.action(knob.four);
+    }
+    else if (mode === "fx") {
+      pitchShift.windowSize = pitchShift.windowSize <= .01 ? .001: pitchShift.windowSize - .01;
+      param = "window " + pitchShift.windowSize.toFixed(2);
+
+    }
     getParamDisplay(param);
 
   }
 
   const rightPad = () => {
     let param;
+    let mode = disp.selected
     setDPad(img.btn.dRight);
-    if (grainSampler.playbackRate > playBackStep && grainSampler.reverse === true) {
-      grainSampler.playbackRate -= playBackStep;
-    }
-    else if (grainSampler.playbackRate <= playBackStep && grainSampler.reverse === true) {
-      grainSampler.reverse = false;
-    }
-    else {
-      grainSampler.playbackRate += playBackStep;
-    }
+    if (mode === "Default") {
+      if (grainSampler.playbackRate > playBackStep && grainSampler.reverse === true) {
+        grainSampler.playbackRate -= playBackStep;
+      }
+      else if (grainSampler.playbackRate <= playBackStep && grainSampler.reverse === true) {
+        grainSampler.reverse = false;
+      }
+      else {
+        grainSampler.playbackRate += playBackStep;
+      }
 
-    grainSampler.reverse ? param = "< -" + grainSampler.playbackRate.toFixed(1) + "x" : param = grainSampler.playbackRate.toFixed(1) + "x >";
-    refreshKnobs();
+      grainSampler.reverse ? param = "< -" + grainSampler.playbackRate.toFixed(1) + "x" : param = grainSampler.playbackRate.toFixed(1) + "x >";
+      refreshKnobs();
+    }
+    else if (mode === "Select_Audio") {
+      time.bpm += 1;
+      refreshKnobs()
+      param = time.bpm;
 
-    // knob.one.action(knob.one);
-    // knob.three.action(knob.three);
-    // knob.four.action(knob.four);
+    }
+    else if (mode === "fx") {
+      pitchShift.windowSize += .01
+      param = "window " + pitchShift.windowSize.toFixed(2);
+
+    }
     getParamDisplay(param);
 
 
@@ -425,10 +486,8 @@ function App() {
   const selClick = () => {
     let param;
     disp.next();
-    // mode === "default" ? setDisplay(VideoSynth()): 
     param = disp.selected;
     getParamDisplay(param);
-    // setMode(selectMode());
   }
 
   const startClick = () => {

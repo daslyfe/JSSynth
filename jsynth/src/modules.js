@@ -8,16 +8,16 @@ const Modules = {
         type: "lowpass",
         frequency: 17000,
         rolloff: -24,
-        Q: 2,
+        Q: 10,
         gain: -12
     }),
     grainVol: new Tone.Volume(0),
-    pitchMix: new Tone.CrossFade([0]),
+    pitchMix: new Tone.CrossFade([.5]),
     pitchShift: new Tone.PitchShift({
         pitch: 7,
-        windowSize: .4,
+        windowSize: .1,
         delayTime: 0,
-        feedback: .5
+        feedback: .1
     }),
     grainSampler: new Tone.GrainPlayer({
         url: new Tone.Buffer(C1),
@@ -42,7 +42,7 @@ const Modules = {
         this.pitchShift.connect(this.pitchMix, 0, 1);
         this.pitchMix.connect(this.filter);
         this.filter.connect(this.limiter);
-        this.grainSampler.connect(this.FFT);
+        this.filter.connect(this.FFT);
         this.limiter.connect(Tone.Master);
     }
 }
