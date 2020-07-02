@@ -1,37 +1,38 @@
 import Tone from "tone";
 import C1 from "./samples/drloop.wav";
+export let startBuffer = new Tone.Buffer(C1)
 
 let fade = .5;
 const Modules = {
-    limiter: new Tone.Limiter(-6),
+    limiter: new Tone.Limiter(-1),
     filter: new Tone.Filter({
         type: "lowpass",
         frequency: 17000,
         rolloff: -24,
-        Q: 10,
+        Q: 0,
         gain: -12
     }),
     grainVol: new Tone.Volume(0),
-    pitchMix: new Tone.CrossFade([.5]),
+    pitchMix: new Tone.CrossFade([0]),
     pitchShift: new Tone.PitchShift({
-        pitch: 7,
+        pitch: 12,
         windowSize: .1,
         delayTime: 0,
-        feedback: .1
+        feedback: 0
     }),
     grainSampler: new Tone.GrainPlayer({
-        url: new Tone.Buffer(C1),
+        url: startBuffer,
         loop: true,
         playbackRate: 1,
         grainSize: .1,
         overlap: 0,
         loopStart: 0,
-        loopEnd: 0,
+        loopEnd: 1,
         reverse: false,
         detune: 0,
         volume: -6,
-        fadeIn: fade,
-        fadeOut: fade
+        // fadeIn: fade,
+        // fadeOut: fade
     }),
     FFT: new Tone.FFT({
         size:  16

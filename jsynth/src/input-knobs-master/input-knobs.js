@@ -196,8 +196,8 @@ input[type=checkbox].input-switch:checked,input[type=radio].input-switch:checked
       el.redraw(true);
       let kName = el.getAttribute("name");
       //set the knob action
-      knob[kName.midi] = parseFloat(el.value)
-      knob[kName.val] = knob[kName.midi]/el.max;
+      knob[kName.midi] = parseInt(el.value)
+      // knob[kName.val] = knob[kName.midi]/el.max;
       el.oninput = knob[kName].action;
 
      
@@ -218,8 +218,9 @@ input[type=checkbox].input-switch:checked,input[type=radio].input-switch:checked
         ik.oldvalue = el.value;
       }
       //this is where the value is set
-      knob[el.name].val = parseFloat(el.value)/parseFloat(el.max);
-      knob[el.name].midi = knob[el.name].val * 127;
+      console.log(el.max)
+      // knob[el.name].val = parseFloat(el.value)/parseFloat(el.max);
+      knob[el.name].midi = parseInt(el.value);
 
       
     };

@@ -9,6 +9,7 @@ import SoundData from './soundData';
 import Time from "./time";
 
 
+
 import './App.css';
 
 
@@ -16,11 +17,14 @@ import './App.css';
 import FlexGraph, { DrawShapesGraph, LineMarkGraph } from "./flexgraph.js"
 
 const grainSampler = Modules.grainSampler;
+grainSampler.loopEnd = 1;
 const filter = Modules.filter;
 const pitchShift = Modules.pitchShift;
 const pitchMix = Modules.pitchMix;
 
 const sound = SoundData;
+const time = Time;
+const noteArray = time.noteArray;
 
 Array.prototype.move = function (from, to) {
   this.splice(to, 0, this.splice(from, 1)[0]);
@@ -29,37 +33,34 @@ Array.prototype.move = function (from, to) {
 const videoSynth = VideoSynth();
 
 const delayPitch = {
-  array: [-24, -17, -12, -5, 0, 7, 12, 19, 24],
+  array: [12, 19, 24,-24, -17, -12, -5, 0, 7],
   nextPitch() { this.array.move(0, 8); return this.array[0] },
   prevPitch() { this.array.move(8, 0); return this.array[0] },
   selected() { return this.array[0] }
 }
-pitchShift.PitchArray = [-24, -17, -12, -5, 0, 7, 12, 19, 24];
-pitchShift.nextPitch = () => pitchShift.PitchArray.move(0, 8);
-pitchShift.prevPitch = () => pitchShift.PitchArray.move(8, 0);
+
 
 
 export const knob = {
-  one: { midi: 0, val: 0 },
-  two: { midi: 0, val: 0 },
-  three: { midi: 0, val: 0 },
-  four: { midi: 0, val: 0 },
-  five: { midi: 0, val: 0 },
-  six: { midi: 0, val: 0 },
-  seven: { midi: 0, val: 0 },
-  eight: { midi: 0, val: 0 },
+  one: { midi: 66, val: () => knob.one.midi/127 },
+  two: { midi: 0, val: () => knob.two.midi/127 },
+  three: { midi: 33, val: () => knob.three.midi/127 },
+  four: { midi: 25, val: () => knob.four.midi/127 },
+  five: { midi: 66, val: () => knob.five.midi/127 },
+  six: { midi: 0, val: () => knob.six.midi/127 },
+  seven: { midi: 0, val: () => knob.seven.midi/127 },
+  eight: { midi: 0, val: () => knob.eight.midi/127 },
 }
-
+// 
 export const sample = {
-  loopStart: 0,
   loopLength: 0,
-  loopEnd: function () { return (this.loopStart + this.loopLength) % grainSampler.buffer.duration },
+  // loopEnd: function () { return (grainSampler.loopStart + this.loopLength) % grainSampler.buffer.duration  }, 
+  loopEnd: function () { return (grainSampler.loopStart + this.loopLength) },
   playbackRate: 0,
 }
 
 
-const time = Time;
-const noteArray = time.noteArray;
+
 
 
 
@@ -181,9 +182,7 @@ function App() {
   const screen2 = disp.selected === "Default" ? videoSynth : getSoundList();
 
 
-  useEffect(() => {
-    Modules.patch()
-  }, []);
+ 
 
   const midiInput = MidiInput();
   const selector = midiInput.createSelector();
@@ -244,12 +243,12 @@ function App() {
   knob.one.action = () => {
     let param
     let _knob = knob.one;
-    let adjValue = parseInt(_knob.val * (noteArray.length - 1));
+    let adjValue = parseInt(_knob.val() * (noteArray.length - 1));
     let note = noteArray[adjValue];
     let noteLength = time.note(note).time;
     let display = time.note(note).display;
 
-    // grainSampler.playbackRate = _knob.val * 20;
+    // grainSampler.playbackRate = _knob.val() * 20;
 
 
     grainSampler.grainSize = noteLength * grainSampler.playbackRate;
@@ -263,11 +262,11 @@ function App() {
     let _knob = knob.two;
 
     let adjValue = 0;
-    if (_knob.val < .8) {
-      adjValue = parseInt(_knob.val * 10);
+    if (_knob.val() < .8) {
+      adjValue = parseInt(_knob.val() * 10);
     }
     else {
-      adjValue = parseInt(_knob.val * 30);
+      adjValue = parseInt(_knob.val() * 30);
     }
 
     //change the volume to be even, volume change delayed to prevent glitching
@@ -287,10 +286,11 @@ function App() {
   knob.three.action = () => {
     let param;
     let _knob = knob.three;
-    sample.loopStart = _knob.val * grainSampler.buffer.duration;
+   
 
-    grainSampler.loopStart = sample.loopStart;
+    grainSampler.loopStart = _knob.val() * grainSampler.buffer.duration;
     grainSampler.loopEnd = sample.loopEnd();
+    console.log("start " + grainSampler.loopStart + " end " + grainSampler.loopEnd)
     param = "start " + grainSampler.loopStart.toFixed(2);
     getParamDisplay(param);
 
@@ -299,12 +299,14 @@ function App() {
   knob.four.action = function () {
     let param;
     let _knob = knob.four;
-    let adjValue = parseInt(_knob.val * (noteArray.length - 1));
+    let adjValue = parseInt(_knob.val() * (noteArray.length - 1));
     let note = noteArray[adjValue];
     let noteLength = time.note(note).time;
     let display = time.note(note).display;
     sample.loopLength = noteLength * grainSampler.playbackRate;
+    
     grainSampler.loopEnd = sample.loopEnd();
+    console.log(grainSampler.loopEnd)
     param = "length  " + display;
     getParamDisplay(param);
     // console.log("start " + grainSampler.loopStart + " end " + grainSampler.loopEnd);
@@ -312,7 +314,7 @@ function App() {
 
   knob.five.action = () => {
     let _knob = knob.five;
-    let logVal = Math.pow((_knob.val + .38) * 5.2, 5);
+    let logVal = Math.pow((_knob.val() + .38) * 5.2, 5);
     filter.frequency.value = .1 + logVal;
     let param = "cutoff " + parseInt(filter.frequency.value);
     getParamDisplay(param);
@@ -323,7 +325,7 @@ function App() {
   knob.six.action = () => {
     let _knob = knob.six;
     let q = filter.Q.value;
-    filter.Q.value = _knob.val * 10;
+    filter.Q.value = _knob.val() * 10;
     let param = "res " + q.toFixed(2);
     getParamDisplay(param);
   }
@@ -331,8 +333,8 @@ function App() {
   knob.seven.action = () => {
     const _knob = knob.seven;
 
-    pitchMix.fade.value = _knob.val <= .04 ? 0 : _knob.val;
-    pitchShift.feedback.value = _knob.val / 2;
+    pitchMix.fade.value = _knob.val() <= .04 ? 0 : _knob.val();
+    pitchShift.feedback.value = _knob.val() / 2;
     let param = pitchMix.fade.value.toFixed(2);
     getParamDisplay("wet " + param)
   }
@@ -340,7 +342,7 @@ function App() {
   knob.eight.action = () => {
     const _knob = knob.eight;
 
-    let size = parseInt(_knob.val * 5)
+    let size = parseInt(_knob.val() * 5)
 
     pitchShift.delayTime.value = size;
 
@@ -350,7 +352,7 @@ function App() {
 
   }
 
-
+ 
 
   const aClick = () => {
     let param = "grain synth"
@@ -493,6 +495,20 @@ function App() {
   const startClick = () => {
     handleStart();
   }
+
+  useEffect(() => {
+    Modules.patch();
+    knob.one.action();
+    knob.two.action();
+    knob.three.action();
+    knob.four.action();
+    knob.five.action();
+    // knob.six.action();
+    // knob.seven.action();
+    // knob.eight.action();
+
+
+  }, []);
 
   return (
     <div>
