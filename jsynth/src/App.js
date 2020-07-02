@@ -3,10 +3,11 @@ import Tone from "tone";
 import "./input-knobs-master/input-knobs.js"
 import { img } from "./images"
 import MidiInput, { midiPatch } from './midi.js'
-import VideoSynth from './sketch';
+import VideoSynth, { vidParam } from './sketch';
 import Modules from './modules';
 import SoundData from './soundData';
 import Time from "./time";
+
 
 
 
@@ -50,6 +51,10 @@ export const knob = {
   six: { midi: 0, val: () => knob.six.midi/127 },
   seven: { midi: 0, val: () => knob.seven.midi/127 },
   eight: { midi: 0, val: () => knob.eight.midi/127 },
+  nine: { midi: 66, val: () => knob.nine.midi/127 },
+  ten: { midi: 0, val: () => knob.ten.midi/127 },
+  eleven: { midi: 0, val: () => knob.eleven.midi/127 },
+  twelve: { midi: 0, val: () => knob.twelve.midi/127 },
 }
 // 
 export const sample = {
@@ -129,22 +134,31 @@ const grainKnobs = () => [
 ]
 
 const fxKnobs = () => [
-  GetKnob("#7AB2E3", "#000000", "five"),
+  GetKnob("#7AB2E3", "#0071BC", "five"),
   GetKnob("#61CD77", "#009245", "six"),
   GetKnob("#FFFEFF", "#CCCCCC", "seven"),
   GetKnob("#FE6D2C", "#BD5226", "eight"),
+]
+
+const videoKnobs = () => [
+  GetKnob("#7AB2E3", "#0071BC", "nine"),
+  GetKnob("#61CD77", "#009245", "ten"),
+  GetKnob("#FFFEFF", "#CCCCCC", "eleven"),
+  GetKnob("#FE6D2C", "#BD5226", "twelve"),
 ]
 
 function App() {
   const [width, setWidth] = React.useState(appStyles.canvasWidth);
   const [height, setHeight] = React.useState(appStyles.canvasHeight);
   const [disp, setDisp] = React.useState({
-    selected: 'fx',
-    next: function () {
-      this.selected === "Select_Audio" ? this.selected = "Default" : this.selected = "Select_Audio";
+    modes: ["Default", "Select_Audio", "Video Synth"],
+    selected: () => disp.modes[0],
+    next: () => {
+      disp.selected = () => disp.modes[0]
+      disp.modes.move(0, 3)
     },
     set: function (mode) {
-      if (mode) this.selected = mode;
+      if (mode) this.selected = () => mode;
     }
 
   })
@@ -179,7 +193,7 @@ function App() {
 
 
 
-  const screen2 = disp.selected === "Default" ? videoSynth : getSoundList();
+  const screen2 = disp.selected() === "Select_Audio" ? getSoundList() : videoSynth;
 
 
  
@@ -332,7 +346,6 @@ function App() {
 
   knob.seven.action = () => {
     const _knob = knob.seven;
-
     pitchMix.fade.value = _knob.val() <= .04 ? 0 : _knob.val();
     pitchShift.feedback.value = _knob.val() / 2;
     let param = pitchMix.fade.value.toFixed(2);
@@ -341,15 +354,26 @@ function App() {
 
   knob.eight.action = () => {
     const _knob = knob.eight;
-
-    let size = parseInt(_knob.val() * 5)
-
+    let size = parseFloat(_knob.val())
     pitchShift.delayTime.value = size;
-
-
     let param = pitchShift.delayTime;
     getParamDisplay("delay " + param);
+  }
 
+  knob.nine.action = () => {
+
+  }
+
+  knob.ten.action = () => {
+    
+  }
+
+  knob.eleven.action = () => {
+    
+  }
+
+  knob.twelve.action = () => {
+    
   }
 
  
@@ -376,7 +400,7 @@ function App() {
   const upPad = () => {
     setDPad(img.btn.dUp);
     let param;
-    let mode = disp.selected;
+    let mode = disp.selected();
     if (mode === "Default") {
       sound.detune += 100;
       param = "detune " + sound.detune;
@@ -384,7 +408,7 @@ function App() {
     else if (mode === "Select_Audio") {
       grainSampler.buffer = new Tone.Buffer(sound.prev());
     }
-    else if (mode = "fx") {
+    else if (mode === "fx") {
       pitchShift.pitch = delayPitch.nextPitch();
       param = "sparkle tune " + pitchShift.pitch.toString();
     }
@@ -395,16 +419,16 @@ function App() {
 
   const downPad = () => {
     setDPad(img.btn.dDown);
-    let mode = disp.selected;
+    let mode = disp.selected();
     let param;
     if (mode === "Default") {
       sound.detune -= 100;
-      param = "delay " + sound.detune;
+      param = "detune " + sound.detune;
     }
     else if (mode === "Select_Audio") {
       grainSampler.buffer = new Tone.Buffer(sound.next());
     }
-    else if (mode = "fx") {
+    else if (mode === "fx") {
       pitchShift.pitch = delayPitch.prevPitch();
       param = "delay tune " + pitchShift.pitch.toString();
     }
@@ -419,7 +443,7 @@ function App() {
   const leftPad = () => {
     let param;
     setDPad(img.btn.dLeft);
-    let mode = disp.selected;
+    let mode = disp.selected();
     if (mode === "Default") {
       if (grainSampler.playbackRate > playBackStep && grainSampler.reverse === false) {
 
@@ -451,7 +475,7 @@ function App() {
 
   const rightPad = () => {
     let param;
-    let mode = disp.selected
+    let mode = disp.selected()
     setDPad(img.btn.dRight);
     if (mode === "Default") {
       if (grainSampler.playbackRate > playBackStep && grainSampler.reverse === true) {
@@ -488,7 +512,7 @@ function App() {
   const selClick = () => {
     let param;
     disp.next();
-    param = disp.selected;
+    param = disp.selected();
     getParamDisplay(param);
   }
 
@@ -498,16 +522,7 @@ function App() {
 
   useEffect(() => {
     Modules.patch();
-    knob.one.action();
-    knob.two.action();
-    knob.three.action();
-    knob.four.action();
-    knob.five.action();
-    // knob.six.action();
-    // knob.seven.action();
-    // knob.eight.action();
-
-
+    for (let dial in knob) {knob[dial].action()};
   }, []);
 
   return (
