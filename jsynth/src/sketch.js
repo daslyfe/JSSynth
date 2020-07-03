@@ -1,23 +1,46 @@
-import React, { Component } from "react";
+import React from "react";
 import Sketch from "react-p5";
-import Tone from "tone";
-import { grainSampler } from './App';
 import Modules from './modules';
-import { Value } from "./rcknob";
-import { knob } from "./App";
 
-export const vidParam = {
-    fragmentation: 7, //between 1 and 10
-    busyness: 10000, //between 20 & 10000 smaller == busier;
-    density: 100,//between 10 and 1000;
-    shift: 3, //between -4 and 4
+Array.prototype.move = function (from, to) {
+    this.splice(to, 0, this.splice(from, 1)[0]);
+};
+
+Array.prototype.shuffle = function () {
+    for (var i = this.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var temp = this[i];
+        this[i] = this[j];
+        this[j] = temp;
+    }
+}
+
+export const vid = {
+    frag: 1, //between 1 and 10
+    busy: 5000, //between 20 & 10000 smaller == busier;
+    dense: 1,//between 10 and 1000;
+    shift: 0, //between -4 and 4
     speed: 1, //low/200
-    stagger: 0,
-    scrollSpeed: 0, //0 up
-    scrollVal: () => vidParam.scrollSpeed > 0 ? (vidParam.t ^ vidParam.stagger) << vidParam.scrollSpeed : 0,
-    operator: "AND",
+    scrSpeeds: [-1, 0, .25, .5, 1, 1.5, 3],
+    directs: ["left", "right", "up", "down"],
+    colors: ["#3f3f3f","#B8C0AB","#FBF2EE", "#18172A","#FFDCD1", "3B3B3B", "#FD4A62", "#FE9CAB", "#3CA0AE", "#313655", "#EAA160"],
+    selectedColors: () => [vid.colors[0], vid.colors[1]],
+    changeColor: () => vid.colors.shuffle(),
+    direction: () => vid.directs[0],
+    nextSpeed: () => vid.scrSpeeds.move(0, vid.scrSpeeds.length - 1),
+    scrollSpeed: () => vid.scrSpeeds[0], //0 up
+    stagger: () => Number.isInteger(vid.scrollSpeed()) ? 0 : 16,
+    scrollVal: () => vid.scrollSpeed() > -1 ? (vid.t ^ vid.stagger()) << vid.scrollSpeed() : 0,
+    opts: ["AND", "XOR", "SHIFT"],
+    operator: () => vid.opts[0],
+    nextOp: () => vid.opts.move(0, vid.opts.length - 1),
+    prevOp: () => vid.opts.move(vid.opts.length - 1, 0),
     t: 10000,
-    scale: 3
+    scale: 3,
+    threshold: 300,
+    getScreenWidth: () => 340 / vid.scale,
+    getScreenHeight: () => 240 / vid.scale
+
 }
 
 const FFT = Modules.FFT;
@@ -29,25 +52,26 @@ const median = (arr) => {
     return arr.length % 2 !== 0 ? nums[mid] : (nums[mid - 1] + nums[mid]) / 2;
 
 }
-let scale = 3;
-const getScreenWidth = () => 300 / scale;
-const getScreenHeight = () => 240 / scale;
+
+
 
 function VideoSynth() {
     let setup = (p5, ref) => {
         p5.createCanvas(500, 500).parent(ref);
-        p5.stroke('teal')
+        
         p5.noSmooth();
     };
 
     let refresh = (p5, ref) => {
         p5.clear(); // use parent to render canvas in this ref (without that p5 render this canvas outside your component)
-        p5.scale(scale);
+        p5.scale(vid.scale);
+        p5.stroke(vid.selectedColors()[0]);
+        p5.background(vid.selectedColors()[1])
     }
 
     const lows = [], mids = [], highs = [];
     let low = 0, middle = 0, high = 0;
-    let t = 10000;
+
 
     let draw = (p5) => {
         let fftArray = FFT.getValue();
@@ -64,47 +88,45 @@ function VideoSynth() {
         middle = median(mids)
         high = median(highs);
 
-        let fragmentation = 7; //between 1 and 10
-        let busyness = 10000; //between 20 & 10000 smaller == busier;
-        let density = high//between 10 and 1000;
-        let shift = 3; //between -4 and 4
-        let speed = low / 300 //low/200
-        let stagger = 0;
-        let scrollSpeed = 0; //0 up
-        let scrollVal = scrollSpeed > 0 ? (t ^ stagger) << scrollSpeed : 0;
-        let operator = "AND"
-        const screenWidth = getScreenWidth();
-        const screenHeight = getScreenHeight()
+        const density = low;
 
-        t += 1;
-        console.log(t);
-        if (operator === "AND") {
+
+        // vid.speed = high/300
+        //low/200
+
+        const screenWidth = vid.getScreenWidth();
+        const screenHeight = vid.getScreenHeight()
+
+        vid.t += 1;
+
+        if (vid.operator() === "AND") {
             for (let y = 0; y < screenWidth; y++) {
                 for (let x = 0; x < screenHeight; x++) {
-                    if (((t * speed) + p5.abs(((x) + (y ^ shift) + scrollVal) & (x - y + scrollVal)) ** fragmentation) % busyness < density)
+                    if (((vid.t * vid.speed) + p5.abs(((x) + (y ^ vid.shift) + vid.scrollVal()) & (x - y + vid.scrollVal())) ** vid.frag) % vid.busy < density)
+
                         p5.point(y, x);
                 }
             }
         }
-        else if (operator === "XOR"){
+        else if (vid.operator() === "XOR") {
             for (let y = 0; y < screenWidth; y++) {
                 for (let x = 0; x < screenHeight; x++) {
-                    if (((t * speed) + p5.abs(((x) + (y ^ shift) + scrollVal) ^ (x - y + scrollVal)) ** fragmentation) % busyness < density)
+                    if (((vid.t * vid.speed) + p5.abs(((x) + (y ^ vid.shift) + vid.scrollVal()) ^ (x - y + vid.scrollVal())) ** vid.frag) % vid.busy < density)
                         p5.point(y, x);
                 }
             }
 
         }
-        else if (operator === "SHIFT") {
+        else if (vid.operator() === "SHIFT") {
             for (let y = 0; y < screenWidth; y++) {
                 for (let x = 0; x < screenHeight; x++) {
-                    if (((t * speed) + p5.abs(((x) + (y ^ shift) + scrollVal) >>> (x - y + scrollVal)) ** fragmentation) % busyness < density)
+                    if (((vid.t * vid.speed) + p5.abs(((x) + (y ^ vid.shift) + vid.scrollVal()) >>> (x - y + vid.scrollVal())) ** vid.frag) % vid.busy < density)
                         p5.point(y, x);
                 }
             }
-    
+
         }
-      
+
 
 
     };

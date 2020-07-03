@@ -3,7 +3,7 @@ import Tone from "tone";
 import "./input-knobs-master/input-knobs.js"
 import { img } from "./images"
 import MidiInput, { midiPatch } from './midi.js'
-import VideoSynth, { vidParam } from './sketch';
+import VideoSynth, { vidParam, vid } from './sketch';
 import Modules from './modules';
 import SoundData from './soundData';
 import Time from "./time";
@@ -30,6 +30,7 @@ const noteArray = time.noteArray;
 Array.prototype.move = function (from, to) {
   this.splice(to, 0, this.splice(from, 1)[0]);
 };
+const toTenth = (number) => parseFloat(number.toFixed(2));
 
 const videoSynth = VideoSynth();
 
@@ -52,9 +53,9 @@ export const knob = {
   seven: { midi: 0, val: () => knob.seven.midi/127 },
   eight: { midi: 0, val: () => knob.eight.midi/127 },
   nine: { midi: 66, val: () => knob.nine.midi/127 },
-  ten: { midi: 0, val: () => knob.ten.midi/127 },
-  eleven: { midi: 0, val: () => knob.eleven.midi/127 },
-  twelve: { midi: 0, val: () => knob.twelve.midi/127 },
+  ten: { midi: 66, val: () => knob.ten.midi/127 },
+  eleven: { midi: 66, val: () => knob.eleven.midi/127 },
+  twelve: { midi: 40, val: () => knob.twelve.midi/127 },
 }
 // 
 export const sample = {
@@ -151,8 +152,8 @@ function App() {
   const [width, setWidth] = React.useState(appStyles.canvasWidth);
   const [height, setHeight] = React.useState(appStyles.canvasHeight);
   const [disp, setDisp] = React.useState({
-    modes: ["Default", "Select_Audio", "Video Synth"],
-    selected: () => disp.modes[0],
+    modes: ["Select_Audio", "Video Synth"],
+    selected: () => "Default",
     next: () => {
       disp.selected = () => disp.modes[0]
       disp.modes.move(0, 3)
@@ -216,11 +217,13 @@ function App() {
         }
         sound.files[currentPage].push(soundInfo);
       }
+      disp.set("Select_Audio")
+      getParamDisplay(disp.selected())
     }
     return (
-      <div style={{ width: "100%", height: "100%" }}>
-        <input style={{ display: "none" }} ref={fileUploadRef} id="audio_file" type="file" multiple accept="audio/*" onChange={() => { pushAudio(fileUploadRef.current.files); setDisp({ ...disp, selected: "Select_Audio" }); console.log(disp) }} />
-        <input className="screen-button-overlay" type="button" onMouseDown={() => fileUploadRef.current.click()} />
+      <div key="fileselect" style={{ width: "100%", height: "100%" }}>
+        <input key="uploadREf" style={{ display: "none" }} ref={fileUploadRef} id="audio_file" type="file" multiple accept="audio/*" onChange={() => { pushAudio(fileUploadRef.current.files) }} />
+        <input key="uploadUI" className="screen-button-overlay" type="button" onMouseDown={() => fileUploadRef.current.click()} />
       </div>
     )
   }
@@ -235,7 +238,7 @@ function App() {
 
       let display = () => {
         return (
-          <div className="param-display">
+          <div key = "paramDisplay" className="param-display">
             <svg key={text} className="param-text-wrapper" viewBox="0 0 100 12"><text className="param-text" dominantBaseline="middle" textAnchor="middle" x="50%" y="59%">{text}</text></svg>
           </div>)
       }
@@ -361,18 +364,33 @@ function App() {
   }
 
   knob.nine.action = () => {
+    const _knob = knob.nine
+    vid.frag = toTenth(1 + (_knob.val() * 6))
+    let param = "frag " + vid.frag
+    getParamDisplay(param);
 
   }
 
   knob.ten.action = () => {
+    const _knob = knob.ten;
+    vid.busy = parseInt( 5200 - (200 +  (_knob.val() * 5000)));
+    let param = "copy " + vid.busy;
+    getParamDisplay(param);
     
   }
 
   knob.eleven.action = () => {
-    
+    const _knob = knob.eleven;
+    vid.shift = toTenth(-4 + (_knob.val() * 8))
+    let param = "tilt " + vid.shift;
+    getParamDisplay(param);  
   }
 
   knob.twelve.action = () => {
+    const _knob = knob.twelve;
+    vid.speed=  _knob.val() > .1 ? _knob.val() * 8: _knob.val();
+    let param = "threshold " + vid.speed.toFixed(2);
+    getParamDisplay(param);
     
   }
 
@@ -432,6 +450,13 @@ function App() {
       pitchShift.pitch = delayPitch.prevPitch();
       param = "delay tune " + pitchShift.pitch.toString();
     }
+    else if (mode === "Video Synth") {
+      
+      vid.changeColor();
+      param = "color"
+     
+
+    }
 
     getParamDisplay(param);
 
@@ -469,6 +494,12 @@ function App() {
       param = "window " + pitchShift.windowSize.toFixed(2);
 
     }
+    else if (mode === "Video Synth") {
+      
+      vid.nextSpeed();
+      param = "scroll " + (1 + vid.scrollSpeed()).toFixed(2)
+
+    }
     getParamDisplay(param);
 
   }
@@ -502,6 +533,11 @@ function App() {
       param = "window " + pitchShift.windowSize.toFixed(2);
 
     }
+    else if (mode === "Video Synth") {
+      vid.nextOp();
+      param = "logic " + vid.operator();
+
+    }
     getParamDisplay(param);
 
 
@@ -513,6 +549,9 @@ function App() {
     let param;
     disp.next();
     param = disp.selected();
+    if (param === "Video Synth") {
+      setTopKnobs(videoKnobs);
+    }
     getParamDisplay(param);
   }
 
@@ -529,7 +568,7 @@ function App() {
     <div>
       {/* {selector} */}
       <div className="grainboi" style={{ position: "absolute", width: appStyles.gameWidth(), height: appStyles.gameHeight() }}>
-        <div className="display">
+        <div style = {{background: vid.selectedColors()[1]}}className="display">
           {screen2}
           {paramDisplay}
           {AddFile()}
