@@ -218,7 +218,7 @@ input[type=checkbox].input-switch:checked,input[type=radio].input-switch:checked
         ik.oldvalue = el.value;
       }
       //this is where the value is set
-      console.log(el.max)
+  
       // knob[el.name].val = parseFloat(el.value)/parseFloat(el.max);
       knob[el.name].midi = parseInt(el.value);
 

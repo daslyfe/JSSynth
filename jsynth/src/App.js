@@ -7,6 +7,7 @@ import VideoSynth, { vidParam, vid } from './sketch';
 import Modules from './modules';
 import SoundData from './soundData';
 import Time from "./time";
+import {ar} from './utility'
 
 
 
@@ -27,17 +28,15 @@ const sound = SoundData;
 const time = Time;
 const noteArray = time.noteArray;
 
-Array.prototype.move = function (from, to) {
-  this.splice(to, 0, this.splice(from, 1)[0]);
-};
+
 const toTenth = (number) => parseFloat(number.toFixed(2));
 
 const videoSynth = VideoSynth();
 
 const delayPitch = {
   array: [12, 19, 24,-24, -17, -12, -5, 0, 7],
-  nextPitch() { this.array.move(0, 8); return this.array[0] },
-  prevPitch() { this.array.move(8, 0); return this.array[0] },
+  nextPitch() { ar.move(this.array, 0, 8); return this.array[0] },
+  prevPitch() { ar.move(this.array, 8, 0); return this.array[0] },
   selected() { return this.array[0] }
 }
 
@@ -104,9 +103,9 @@ let paramTimer;
 
 function getScreenText(text, type) {
   if (type === "select") {
-    return <svg key={text} className="screen-text-wrapper-select" viewBox="0 0 100 5"><text className="screen-text-select" x="1" y="4">{text}</text></svg>
+    return <svg key={text} className="screen-text-wrapper-select" viewBox="0 0 100 5"><text key= {text + "in"} className="screen-text-select" x="1" y="4">{text}</text></svg>
   }
-  return <svg key={text} className="screen-text-wrapper" viewBox="0 0 100 5"><text className="screen-text" x="1" y="4">{text}</text></svg>
+  return <svg key={text} className="screen-text-wrapper" viewBox="0 0 100 5"><text key= {text + "in"} className="screen-text" x="1" y="4">{text}</text></svg>
 
 }
 
@@ -140,7 +139,6 @@ const fxKnobs = () => [
   GetKnob("#FFFEFF", "#CCCCCC", "seven"),
   GetKnob("#FE6D2C", "#BD5226", "eight"),
 ]
-
 const videoKnobs = () => [
   GetKnob("#7AB2E3", "#0071BC", "nine"),
   GetKnob("#61CD77", "#009245", "ten"),
@@ -148,15 +146,17 @@ const videoKnobs = () => [
   GetKnob("#FE6D2C", "#BD5226", "twelve"),
 ]
 
+
 function App() {
+
   const [width, setWidth] = React.useState(appStyles.canvasWidth);
   const [height, setHeight] = React.useState(appStyles.canvasHeight);
   const [disp, setDisp] = React.useState({
-    modes: ["Select_Audio", "Video Synth"],
+    modes: ["Video Synth","Select_Audio"],
     selected: () => "Default",
     next: () => {
       disp.selected = () => disp.modes[0]
-      disp.modes.move(0, 3)
+      ar.move(disp.modes,0, 3)
     },
     set: function (mode) {
       if (mode) this.selected = () => mode;
@@ -179,7 +179,6 @@ function App() {
   const getSoundList = () => {
     let out = [];
     for (let file in sound.files[sound.currentPage]) {
-
       let fileList = sound.files[sound.currentPage];
       if (fileList[file] === fileList[sound.selected]) {
         out.push(getScreenText(fileList[file].name, "select"))
@@ -221,10 +220,10 @@ function App() {
       getParamDisplay(disp.selected())
     }
     return (
-      <div key="fileselect" style={{ width: "100%", height: "100%" }}>
+      <> 
         <input key="uploadREf" style={{ display: "none" }} ref={fileUploadRef} id="audio_file" type="file" multiple accept="audio/*" onChange={() => { pushAudio(fileUploadRef.current.files) }} />
         <input key="uploadUI" className="screen-button-overlay" type="button" onMouseDown={() => fileUploadRef.current.click()} />
-      </div>
+      </>
     )
   }
 
@@ -430,6 +429,10 @@ function App() {
       pitchShift.pitch = delayPitch.nextPitch();
       param = "sparkle tune " + pitchShift.pitch.toString();
     }
+    else if (mode === "Video Synth") {  
+      vid.nextScale();
+      param = "scale " + vid.scale();
+    }
 
     getParamDisplay(param);
 
@@ -454,7 +457,6 @@ function App() {
       
       vid.changeColor();
       param = "color"
-     
 
     }
 
@@ -565,14 +567,17 @@ function App() {
   }, []);
 
   return (
-    <div>
+    <div key="master">
       {/* {selector} */}
-      <div className="grainboi" style={{ position: "absolute", width: appStyles.gameWidth(), height: appStyles.gameHeight() }}>
-        <div style = {{background: vid.selectedColors()[1]}}className="display">
+      <div key="game" className="grainboi" style={{ position: "absolute", width: appStyles.gameWidth(), height: appStyles.gameHeight() }}>
+      
+        <div className="display">
           {screen2}
           {paramDisplay}
-          {AddFile()}
+          
+          
         </div>
+        {AddFile()}
         <div className="knob-bar">
           {topKnobs}
         </div>

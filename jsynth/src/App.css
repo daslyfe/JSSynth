@@ -25,37 +25,42 @@
 }
 .grainboi{
  
+  
   padding: 0;
-  margin-left: 100px;  
+  margin: 0;  
   background-image: url("./assets/4x/Grainboi.png"); 
   background-repeat: no-repeat;
   background-size: cover;
-  margin-top: 20px; 
+
 }
 .display{
   position: relative;
-  /* background-color: #C0C2C0; */
+  background-color: #B8C0AB;
 
   padding: 0;
-  width: 76%;
-  height: 31.5%;
+  width: 80%;
+  height: 35%;
   margin-bottom: 1%; 
+  z-index: -1;
   
   margin:0 auto;
   overflow: hidden;
-  top: 10.5%;
+  top: 9%;
  
 }
 .screen-button-overlay{
   position: absolute;
-  top: 0;
+
+  top: 10%;
   left: 0;
   padding: 0;
   margin: 0;
+  z-index: 1;
   background: transparent;
+  left: 10%;
   border: none;
-  height: 100%;
-  width: 100%;
+  height: 32%;
+  width: 80%;
 }
 
 .knob-bar{
@@ -66,7 +71,7 @@
     padding: 0px;
     height: 10%;
     margin: 0 auto;
-    margin-top: 20%;
+    margin-top: 14.5%;
  
   
 }
@@ -218,8 +223,8 @@
 
   width: 50%;
   height: 10%;
-  top: 0;
-  right: 0;
+  top: 4%;
+  right: 2%;
  
 }
 .d-btn{
