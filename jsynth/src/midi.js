@@ -1,16 +1,12 @@
 import WebMidi from 'webmidi';
 import React from 'react';
 
-export const midiPatch = {
-    activeNote: { number: 60, name: "C", octave: 4 },
-    activeDetune: function () {
-        return (this.activeNote.number - 60) * 100;
-    }
-}
+
+
 let inputs = [];
 function MidiInput() {
 
-    const [midi, setMidi] = React.useState({
+    const midi = {
         inputs: WebMidi.inputs,
         createSelector() {
             const getOption = input => <option key={input.name} value={input.name}>{input.name}</option>
@@ -26,15 +22,17 @@ function MidiInput() {
             return (this.activeNote.number - 60) * 100;
         }
 
-    });
+    };
 
     const handleInputSelect = (midiName) => {
         const input = WebMidi.getInputByName(midiName);
         input.addListener('noteon', 'all',
             function (e) {
               
-                // midiPatch.activeNote = e.note
-                setMidi({ ...midi, activeNote: e.note });
+            
+                midi.activeNote =  e.note;
+                // Modules.grainSampler.detune = midi.activeDetune() + SoundData.detune;
+                // console.log(e.note)
             
             }
         );
@@ -47,16 +45,17 @@ function MidiInput() {
         );
     }
 
+    
 
-    const midiStart = React.useEffect(() => {
         WebMidi.enable(err => {
             //these two lines enable all inputs by default
-            const enableAll = input => handleInputSelect(input.name);
-            midi.inputs.map(enableAll);
-            setMidi({ ...midi, inputs: midi.inputs })
-            
+            // const enableAll = input => handleInputSelect(input.name);
+            // midi.inputs.map(enableAll);
+            // setMidi({ ...midi, inputs: midi.inputs })
+            midi.createSelector()
+             console.log(midi.inputs)
         })
-    }, [midi])
+  
 
     return midi;
 }

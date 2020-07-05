@@ -20,6 +20,9 @@ const sound = SoundData;
 const time = Time;
 const noteArray = time.noteArray;
 const videoSynth = VideoSynth();
+// const midiInput = MidiInput();
+
+
 
 const delayPitch = {
   array: [12, 19, 24,-24, -17, -12, -5, 0, 7],
@@ -136,9 +139,8 @@ function App() {
   }
 
   const screen = disp.selected() === "Select_Audio" ? getSoundList() : videoSynth;
-  const midiInput = MidiInput();
-  grainSampler.detune = midiInput.activeDetune() + sound.detune;
-  // const selector = midiInput.createSelector();
+
+  
   function pushAudio(files) {
     let file;
     let currentPage = 0;
@@ -163,7 +165,7 @@ function App() {
       </>
     )
   }
-
+  // const selector = midiInput.createSelector();
   const handleStart = () => {
     grainSampler.state === "stopped" ? grainSampler.start() : grainSampler.stop();
   };
@@ -228,7 +230,7 @@ function App() {
     let _knob = knob.three;
     grainSampler.loopStart = _knob.val() * grainSampler.buffer.duration;
     grainSampler.loopEnd = sample.loopEnd();
-    // console.log("start " + grainSampler.loopStart + " end " + grainSampler.loopEnd)
+    console.log("start " + grainSampler.loopStart + " end " + grainSampler.loopEnd)
     param = "start " + grainSampler.loopStart.toFixed(2);
     getParamDisplay(param);
   }
@@ -241,7 +243,7 @@ function App() {
     let display = time.note(note).display;
     sample.loopLength = noteLength * grainSampler.playbackRate;
     grainSampler.loopEnd = sample.loopEnd();
-
+    console.log(grainSampler.loopEnd)
     param = "length  " + display;
     getParamDisplay(param);
     // console.log("start " + grainSampler.loopStart + " end " + grainSampler.loopEnd);
@@ -260,7 +262,6 @@ function App() {
     let param = "res " + q.toFixed(2);
     getParamDisplay(param);
   }
-  
   knob.seven.action = () => {
     const _knob = knob.seven;
     pitchMix.fade.value = _knob.val() <= .04 ? 0 : _knob.val();
@@ -325,7 +326,9 @@ function App() {
     let mode = disp.selected();
     if (mode === "Default") {
       sound.detune += 100;
+      grainSampler.detune = sound.detune;
       param = "detune " + sound.detune;
+      
     }
     else if (mode === "Select_Audio") {
       grainSampler.buffer = new Tone.Buffer(sound.prev());
@@ -347,6 +350,8 @@ function App() {
     let param;
     if (mode === "Default") {
       sound.detune -= 100;
+      //remove this line once reimplement midi
+      grainSampler.detune = sound.detune;
       param = "detune " + sound.detune;
     }
     else if (mode === "Select_Audio") {
@@ -438,7 +443,7 @@ function App() {
     }
     getParamDisplay(param);
   }
-
+  
   const selClick = () => {
     let param;
     disp.next();
@@ -446,6 +451,7 @@ function App() {
     if (param === "Video Synth") {
       setTopKnobs(videoKnobs);
     }
+    console.log(sound);
     getParamDisplay(param);
   }
 
@@ -456,6 +462,7 @@ function App() {
   useEffect(() => {
     Modules.patch();
     for (let dial in knob) {knob[dial].action()};
+
     // sample.loopEnd = function () { return (grainSampler.loopStart + this.loopLength) % grainSampler.buffer.duration  }
    
   }, []);
