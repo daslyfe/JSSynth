@@ -223,12 +223,12 @@ function App() {
     getParamDisplay(param);
   }
   knob.three.action = () => {
-    grainSampler.start();
+    // grainSampler.start();
     let param;
     let _knob = knob.three;
     grainSampler.loopStart = _knob.val() * grainSampler.buffer.duration;
     grainSampler.loopEnd = sample.loopEnd();
-    console.log("start " + grainSampler.loopStart + " end " + grainSampler.loopEnd)
+    // console.log("start " + grainSampler.loopStart + " end " + grainSampler.loopEnd)
     param = "start " + grainSampler.loopStart.toFixed(2);
     getParamDisplay(param);
   }
@@ -241,7 +241,7 @@ function App() {
     let display = time.note(note).display;
     sample.loopLength = noteLength * grainSampler.playbackRate;
     grainSampler.loopEnd = sample.loopEnd();
-    console.log(grainSampler.loopEnd)
+
     param = "length  " + display;
     getParamDisplay(param);
     // console.log("start " + grainSampler.loopStart + " end " + grainSampler.loopEnd);
@@ -260,6 +260,7 @@ function App() {
     let param = "res " + q.toFixed(2);
     getParamDisplay(param);
   }
+  
   knob.seven.action = () => {
     const _knob = knob.seven;
     pitchMix.fade.value = _knob.val() <= .04 ? 0 : _knob.val();
@@ -445,7 +446,6 @@ function App() {
     if (param === "Video Synth") {
       setTopKnobs(videoKnobs);
     }
-    console.log(sound);
     getParamDisplay(param);
   }
 

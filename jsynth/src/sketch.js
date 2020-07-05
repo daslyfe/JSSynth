@@ -16,7 +16,7 @@ export const vid = {
     colors: ["#3f3f3f","#B8C0AB", "#18172A","#FFDCD1", "#3B3B3B", "#FD4A62", "#FE9CAB", "#3CA0AE", "#313655", "#EAA160"],
     // colors: ["#3f3f3f", "#B8C0AB", "#2D2D2D","#0071BC", "#7AB2E3", "#61CD77", "#FE6D2C", "#D94950"  ],
     selectedColors: () => [vid.colors[0], vid.colors[1]],
-    changeColor: () => {ar.shuff(vid.colors); console.log(vid.colors)},
+    changeColor: () => {ar.shuff(vid.colors); },
     direction: () => vid.directs[0],
     nextSpeed: () => ar.move(vid.scrSpeeds, 0, vid.scrSpeeds.length - 1),
     scrollSpeed: () => vid.scrSpeeds[0], //0 up
