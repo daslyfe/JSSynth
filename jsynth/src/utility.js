@@ -10,3 +10,7 @@ export const ar = {
     },
     shuff: (arr) => arr.map((v, k) => ar.move(arr, Math.floor(Math.random() * k + 1), k)) //slightly less random
 }
+
+export const num = {     
+    tenth: (number) => parseFloat(number.toFixed(2)) 
+}

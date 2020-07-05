@@ -2,6 +2,7 @@ import React from "react";
 import Sketch from "react-p5";
 import Modules from './modules';
 import {ar} from './utility';
+import {appStyles} from './App'
   
 
 export const vid = {
@@ -29,8 +30,8 @@ export const vid = {
     nextScale: () => ar.move(vid.scaleOp, 0, vid.scaleOp.length -1),//vid.scaleOp.move(0, vid.scaleOp.length - 1),
     scale: () => vid.scaleOp[0],
     threshold: 300,
-    getScreenWidth: () => 340 / vid.scale(),
-    getScreenHeight: () => 240 / vid.scale()
+    getScreenWidth: () => (appStyles.gameWidth()/1.2) /vid.scale(),
+    getScreenHeight: () => appStyles.gameWidth()/1.7 / vid.scale()
 
 }
 
@@ -48,7 +49,7 @@ const median = (arr) => {
 
 function VideoSynth() {
     let setup = (p5, ref) => {
-        p5.createCanvas(500, 500).parent(ref);
+        p5.createCanvas(appStyles.gameWidth()/1.2, appStyles.gameWidth()/1.7).parent(ref);
         
         p5.noSmooth();
     };
@@ -121,7 +122,7 @@ function VideoSynth() {
 
 
     };
-    return <Sketch setup={setup} draw={draw} />;
+    return <Sketch style = {{position: "absolute"}} setup={setup} draw={draw} />;
 }
 
 export default VideoSynth
