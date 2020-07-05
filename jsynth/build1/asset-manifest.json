@@ -1,0 +1,27 @@
+{
+  "files": {
+    "main.css": "/static/css/main.82228784.chunk.css",
+    "main.js": "/static/js/main.671e854c.chunk.js",
+    "main.js.map": "/static/js/main.671e854c.chunk.js.map",
+    "runtime-main.js": "/static/js/runtime-main.94245e7c.js",
+    "runtime-main.js.map": "/static/js/runtime-main.94245e7c.js.map",
+    "static/js/2.4e9a2fcf.chunk.js": "/static/js/2.4e9a2fcf.chunk.js",
+    "static/js/2.4e9a2fcf.chunk.js.map": "/static/js/2.4e9a2fcf.chunk.js.map",
+    "index.html": "/index.html",
+    "precache-manifest.c187341d8ce12d93b672aff571598d6b.js": "/precache-manifest.c187341d8ce12d93b672aff571598d6b.js",
+    "service-worker.js": "/service-worker.js",
+    "static/css/main.82228784.chunk.css.map": "/static/css/main.82228784.chunk.css.map",
+    "static/js/2.4e9a2fcf.chunk.js.LICENSE.txt": "/static/js/2.4e9a2fcf.chunk.js.LICENSE.txt",
+    "static/media/Eidolon.mp3": "/static/media/Eidolon.2a549a99.mp3",
+    "static/media/App.css": "/static/media/Grainboi.1b63c2f4.png",
+    "static/media/NASA_RadioTelescope.mp3": "/static/media/NASA_RadioTelescope.017f5086.mp3",
+    "static/media/SciDrum.mp3": "/static/media/SciDrum.c8fec853.mp3",
+    "static/media/boot.mp3": "/static/media/boot.e7f41580.mp3"
+  },
+  "entrypoints": [
+    "static/js/runtime-main.94245e7c.js",
+    "static/js/2.4e9a2fcf.chunk.js",
+    "static/css/main.82228784.chunk.css",
+    "static/js/main.671e854c.chunk.js"
+  ]
+}
