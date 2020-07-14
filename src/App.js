@@ -516,13 +516,13 @@ function App() {
   }, []);
 
   return (
-    <div key="master">
-      {/* {selector} */}
+  
       <div
         key="game"
         className="grainboi"
         style={{
           position: "absolute",
+    
           width: appStyles.gameWidth(),
           height: appStyles.gameHeight(),
         }}
@@ -587,7 +587,7 @@ function App() {
           ></button>
         </div>
       </div>
-    </div>
+
   );
 }
 
