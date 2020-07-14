@@ -63,10 +63,12 @@ export const appStyles = {
   canvasWidth: window.innerWidth,
   canvasHeight: window.innerHeight,
   gameHeight: function () {
-    return this.canvasHeight / 1;
+    // return this.canvasHeight / 1;
+    return 1000
   },
   gameWidth: function () {
-    return this.gameHeight() / 1.685;
+    // return this.gameHeight() / 1.685;
+    return 593.47
   },
   screenBGColor: "#B8C0AB",
   gameColor: "#F2F2F2",
@@ -516,7 +518,6 @@ function App() {
   }, []);
 
   return (
-  
       <div
         key="game"
         className="grainboi"
@@ -587,7 +588,7 @@ function App() {
           ></button>
         </div>
       </div>
-
+   
   );
 }
 

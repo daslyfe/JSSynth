@@ -25,7 +25,10 @@
 }
 .grainboi{
   padding: 0;
-  margin: 0;  
+  position: relative;
+  left: 0;
+  right: 0;
+  margin: 0 auto;  
   background-image: url("./assets/4x/Grainboi.png"); 
   background-repeat: no-repeat;
   background-size: cover;
