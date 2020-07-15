@@ -63,12 +63,12 @@ export const appStyles = {
   canvasWidth: window.innerWidth,
   canvasHeight: window.innerHeight,
   gameHeight: function () {
-    // return this.canvasHeight / 1;
-    return 1000
+    return this.canvasHeight / 1;
+  
   },
   gameWidth: function () {
-    // return this.gameHeight() / 1.685;
-    return 593.47
+    return this.gameHeight() / 1.685;
+
   },
   screenBGColor: "#B8C0AB",
   gameColor: "#F2F2F2",
