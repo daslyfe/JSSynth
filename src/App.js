@@ -63,12 +63,16 @@ export const appStyles = {
   canvasWidth: window.innerWidth,
   canvasHeight: window.innerHeight,
   gameHeight: function () {
-    // return this.canvasHeight / 1;
-    return 1000
+    return this.canvasHeight / 1;
+  //  return "100vh"
   },
   gameWidth: function () {
-    // return this.gameHeight() / 1.685;
-    return 593.47
+    return this.gameHeight() / 1.685;
+    // return 100/1.685 + "vh"
+  },
+  updateCanvas: function () {
+    this.canvasWidth = window.innerWidth;
+    this.canvasHeight = window.innerHeight;
   },
   screenBGColor: "#B8C0AB",
   gameColor: "#F2F2F2",
@@ -151,6 +155,8 @@ function App() {
       if (mode) this.selected = () => mode;
     },
   });
+
+
 
   const [paramDisplay, setParamDisplay] = React.useState();
   const [dPad, setDPad] = React.useState(img.btn.dPad);
