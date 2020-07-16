@@ -14,4 +14,5 @@ export const ar = {
 
 export const num = {
   tenth: (number) => parseFloat(number.toFixed(2)),
+  clamp: (number, min, max) => Math.min(Math.max(min, number), max)
 };

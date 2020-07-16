@@ -9,6 +9,7 @@ import SoundData from "./soundData";
 import Time from "./time";
 import { ar, num } from "./utility";
 import "./App.css";
+import Knob from './simpleKnob'
 
 const grainSampler = Modules.grainSampler;
 const filter = Modules.filter;
@@ -18,6 +19,7 @@ const sound = SoundData;
 const time = Time;
 const noteArray = time.noteArray;
 const videoSynth = VideoSynth();
+let isStarted = false;
 // const midiInput = MidiInput();
 
 const delayPitch = {
@@ -155,6 +157,7 @@ function App() {
   const [paramDisplay, setParamDisplay] = React.useState();
   const [dPad, setDPad] = React.useState(img.btn.dPad);
   const [topKnobs, setTopKnobs] = React.useState(grainKnobs);
+  
 
   const getSoundList = () => {
     let out = [];
@@ -218,6 +221,13 @@ function App() {
       ? grainSampler.start()
       : grainSampler.stop();
   };
+
+  const firstInput = () => {
+    if (isStarted === false) {
+      handleStart()
+      isStarted = true
+    }
+  }
 
   let getParamDisplay = (text) => {
     if (text) {
@@ -308,6 +318,7 @@ function App() {
     console.log(grainSampler.loopEnd);
     param = "length  " + display;
     getParamDisplay(param);
+
     // console.log("start " + grainSampler.loopStart + " end " + grainSampler.loopEnd);
   };
   knob.five.action = () => {
@@ -316,6 +327,7 @@ function App() {
     filter.frequency.value = 0.1 + logVal;
     let param = "cutoff " + parseInt(filter.frequency.value);
     getParamDisplay(param);
+ 
   };
   knob.six.action = () => {
     let _knob = knob.six;
@@ -500,25 +512,30 @@ function App() {
     if (param === "Video Synth") {
       setTopKnobs(videoKnobs);
     }
-    console.log(sound);
     getParamDisplay(param);
   };
 
   const startClick = () => {
     handleStart();
   };
-
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  }
   useEffect(() => {
     Modules.patch();
     for (let dial in knob) {
       knob[dial].action();
     }
-
+    firstInput();
+    
+    // console.log ("w " + Document.onmousemove + " " + window.innerWidth)
     // sample.loopEnd = function () { return (grainSampler.loopStart + this.loopLength) % grainSampler.buffer.duration  }
   }, []);
 
   return (
       <div
+        onDrop = {e => handleDrop(e)}
         key="game"
         className="grainboi"
         style={{
@@ -528,6 +545,7 @@ function App() {
           height: appStyles.gameHeight(),
         }}
       >
+        <Knob diameter="10vh" color="blue" action={(midi, val) => console.log(midi)}/>
         <div className="display">
           {screen}
           {paramDisplay}
