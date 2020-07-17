@@ -535,17 +535,19 @@ function App() {
 
   return (
       <div
+        
         onDrop = {e => handleDrop(e)}
         key="game"
         className="grainboi"
         style={{
+          // touchAction: "none",
           position: "absolute",
     
           width: appStyles.gameWidth(),
           height: appStyles.gameHeight(),
         }}
       >
-        <Knob diameter="10vh" color="blue" action={(midi, val) => console.log(midi)}/>
+        <Knob style={{background: "green"}} diameter="10vh" color="blue" action={(midi, val) => console.log(midi)}/>
         <div className="display">
           {screen}
           {paramDisplay}
