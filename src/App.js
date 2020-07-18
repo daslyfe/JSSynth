@@ -207,14 +207,14 @@ function App() {
     }
   };
 
-  const knobStyle = { position: "relative", marginLeft: "6%" };
+  const knobStyle = { position: "relative", marginLeft: "5.6%" };
 
   const grainKnobs = [
     <Knob
       key="grainSizeknb"
       initVal={knbSave[0]}
       style={knobStyle}
-      diameter="8vh"
+      diameter="18%"
       color="#7AB2E3"
       pointerColor="#0071BC"
       action={(midi, val) => {
@@ -233,7 +233,7 @@ function App() {
       key="grainOverlapKnb"
       initVal={knbSave[1]}
       style={knobStyle}
-      diameter="8vh"
+      diameter="18%"
       color="#61CD77"
       pointerColor="#009245"
       action={(midi, val) => {
@@ -262,7 +262,7 @@ function App() {
       key="grainStartKnb"
       initVal={knbSave[2]}
       style={knobStyle}
-      diameter="8vh"
+      diameter="18%"
       color="#FFFEFF"
       pointerColor="#CCCCCC"
       action={(midi, val) => {
@@ -281,7 +281,7 @@ function App() {
       key="grainLengthKnb"
       initVal={knbSave[3]}
       style={knobStyle}
-      diameter="8vh"
+      diameter="18%"
       color="#FE6D2C"
       pointerColor="#BD5226"
       action={(midi, val) => {
@@ -304,7 +304,7 @@ function App() {
       key="cutoffKnb"
       initVal={knbSave[4]}
       style={knobStyle}
-      diameter="8vh"
+      diameter="18%"
       color="#7AB2E3"
       pointerColor="#0071BC"
       action={(midi, val) => {
@@ -319,7 +319,7 @@ function App() {
       key="resKnb"
       initVal={knbSave[5]}
       style={knobStyle}
-      diameter="8vh"
+      diameter="18%"
       color="#61CD77"
       pointerColor="#009245"
       action={(midi, val) => {
@@ -334,7 +334,7 @@ function App() {
       key="pitchMixknb"
       initVal={knbSave[6]}
       style={knobStyle}
-      diameter="8vh"
+      diameter="18%"
       color="#FFFEFF"
       pointerColor="#CCCCCC"
       action={(midi, val) => {
@@ -349,7 +349,7 @@ function App() {
       key="delayTimeKnb"
       initVal={knbSave[7]}
       style={knobStyle}
-      diameter="8vh"
+      diameter="18%"
       color="#FE6D2C"
       pointerColor="#BD5226"
       action={(midi, val) => {
@@ -367,7 +367,7 @@ function App() {
       key="gragKnb"
       initVal={knbSave[8]}
       style={knobStyle}
-      diameter="8vh"
+      diameter="18%"
       color="#7AB2E3"
       pointerColor="#0071BC"
       action={(midi, val) => {
@@ -381,7 +381,7 @@ function App() {
       key="CopyKnb"
       initVal={knbSave[9]}
       style={knobStyle}
-      diameter="8vh"
+      diameter="18%"
       color="#61CD77"
       pointerColor="#009245"
       action={(midi, val) => {
@@ -395,7 +395,7 @@ function App() {
       key="shiftKnb"
       initVal={knbSave[10]}
       style={knobStyle}
-      diameter="8vh"
+      diameter="18%"
       color="#FFFEFF"
       pointerColor="#CCCCCC"
       action={(midi, val) => {
@@ -409,7 +409,7 @@ function App() {
       key="threshKnb"
       initVal={knbSave[11]}
       style={knobStyle}
-      diameter="8vh"
+      diameter="18%"
       color="#FE6D2C"
       pointerColor="#BD5226"
       action={(midi, val) => {
@@ -597,7 +597,7 @@ function App() {
       onDrop={(e) => handleDrop(e)}
       key="game"
       className="grainboi"
-      style={grainStyle}
+      // style={grainStyle}
     >
       <div className="display">
         {screen}
