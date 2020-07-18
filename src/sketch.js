@@ -64,13 +64,14 @@ function VideoSynth() {
     ).parent(ref);
 
     p5.noSmooth();
+
   };
 
   let refresh = (p5, ref) => {
     p5.clear(); // use parent to render canvas in this ref (without that p5 render this canvas outside your component)
     p5.scale(vid.scale());
-    p5.stroke(vid.selectedColors()[0]);
-    p5.background(vid.selectedColors()[1]);
+    p5.stroke(vid.selectedColors()[1]);
+    p5.background(vid.selectedColors()[0]);
   };
 
   const lows = [],
@@ -155,7 +156,7 @@ function VideoSynth() {
       }
     }
   };
-  return <Sketch style={{ position: "absolute" }} setup={setup} draw={draw} />;
+  return <Sketch style={{ position: "absolute", background: "blue"}} setup={setup} draw={draw} />;
 }
 
 export default VideoSynth;

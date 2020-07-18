@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { knob } from "./App";
 import { num } from "./utility";
+
 let startX, startY, x, y, midiVal;
 
 function Knob(props) {
@@ -11,7 +12,10 @@ function Knob(props) {
     y: 0,
   });
 
-  const [knb, setKnb] = useState({ midi: 0, val: 0 });
+  const [knb, setKnb] = useState({
+    midi: parseInt(props.initVal) || 0,
+    val: parseInt(props.initVal) / 127 || 0,
+  });
 
   const pointer = () => {
     const theta = 5.5 - knb.val * 5;
@@ -29,6 +33,7 @@ function Knob(props) {
           background: props.pointerColor || "black",
           width: "25%",
           height: "25%",
+          position: "absolute",
           borderRadius: "50%",
           marginTop: x,
           marginLeft: y,
@@ -38,19 +43,21 @@ function Knob(props) {
   };
 
   function elementDrag(e) {
+    console.log("dragging");
     e = e || window.event;
     e.preventDefault();
     if (e.type === "touchmove") {
-      point.x = e.touches[0].clientX
-      point.y = e.touches[0].clientY
+      point.x = e.touches[0].clientX;
+      point.y = e.touches[0].clientY;
     } else {
       point.x = e.clientX;
       point.y = e.clientY;
     }
+
     const xDif = point.x - point.startX;
-    const yDif = point.startY - point.y +knb.midi;
-    let adjVal = (127 / window.innerHeight) * yDif * 6 + 63;
-    let midiVal = num.clamp(adjVal, 0, 127);
+    const yDif = point.startY - point.y;
+    const adjVal = (127 / window.innerHeight) * yDif * 6;
+    const midiVal = num.clamp(adjVal + knb.midi, 0, 127);
 
     const out = {
       midi: midiVal,
@@ -58,13 +65,10 @@ function Knob(props) {
     };
     // knb.midi = midiVal;
     // knob.val = knb.midi / 127
+    props.action(out.midi, out.val);
     setKnb(out);
-  
+  }
 
-  }
-  if (props.action) {
-    props.action(knb.midi, knb.val);
-  }
   const stopDrag = (e) => {
     document.onmousemove = null;
     document.onmouseup = null;
@@ -76,11 +80,11 @@ function Knob(props) {
     e = e || window.event;
     // e.preventDefault();
     if (e.type === "touchstart") {
-      startX = e.touches[0].clientX;
-      startY = e.touches[0].clientY;
+      point.startX = e.touches[0].clientX;
+      point.startY = e.touches[0].clientY;
     } else {
-      startX = e.clientX;
-      startY = e.clientY;
+      point.startX = e.clientX;
+      point.startY = e.clientY;
     }
 
     // document.onmousemove = () => {console.log('ugduhdhu')}
@@ -93,22 +97,25 @@ function Knob(props) {
     touchAction: "none",
     background: props.color || "gray",
     borderRadius: "50%",
-    position: "absolute",
-    display: "flex",
+    position: "relative",
+    display: "inline-block",
     width: props.diameter,
-    height: props.diameter
-  }
+    height: 0,
+    paddingBottom: props.diameter,
+  };
   if (props.style) {
     for (let param in props.style) {
       style[param] = props.style[param];
     }
   }
+  const knbClass = props.className || "simple-knob";
+
   return (
     <div
+      className={knbClass}
       onTouchStart={(e) => drag(e)}
       onMouseDown={(e) => drag(e)}
-      style=  {style}
-  
+      style={style}
     >
       {pointer()}
     </div>

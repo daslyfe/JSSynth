@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, Component } from "react";
 import Tone from "tone";
-import "./input-knobs-master/input-knobs.js";
+
 import { img } from "./images";
 import MidiInput, { midiPatch } from "./midi.js";
 import VideoSynth, { vid } from "./sketch";
@@ -9,7 +9,7 @@ import SoundData from "./soundData";
 import Time from "./time";
 import { ar, num } from "./utility";
 import "./App.css";
-import Knob from './simpleKnob'
+import Knob from "./simpleKnob";
 
 const grainSampler = Modules.grainSampler;
 const filter = Modules.filter;
@@ -18,7 +18,7 @@ const pitchMix = Modules.pitchMix;
 const sound = SoundData;
 const time = Time;
 const noteArray = time.noteArray;
-const videoSynth = VideoSynth();
+
 let isStarted = false;
 // const midiInput = MidiInput();
 
@@ -37,20 +37,8 @@ const delayPitch = {
   },
 };
 
-export const knob = {
-  one: { midi: 66, val: () => knob.one.midi / 127 },
-  two: { midi: 0, val: () => knob.two.midi / 127 },
-  three: { midi: 0, val: () => knob.three.midi / 127 },
-  four: { midi: 0, val: () => knob.four.midi / 127 },
-  five: { midi: 127, val: () => knob.five.midi / 127 },
-  six: { midi: 0, val: () => knob.six.midi / 127 },
-  seven: { midi: 0, val: () => knob.seven.midi / 127 },
-  eight: { midi: 0, val: () => knob.eight.midi / 127 },
-  nine: { midi: 66, val: () => knob.nine.midi / 127 },
-  ten: { midi: 66, val: () => knob.ten.midi / 127 },
-  eleven: { midi: 66, val: () => knob.eleven.midi / 127 },
-  twelve: { midi: 40, val: () => knob.twelve.midi / 127 },
-};
+const knbSave = [66, 0, 0, 0, 127, 0, 0, 0, 66, 66, 66, 40];
+
 //
 export const sample = {
   loopLength: 0,
@@ -66,11 +54,9 @@ export const appStyles = {
   canvasHeight: window.innerHeight,
   gameHeight: function () {
     return this.canvasHeight / 1;
-  
   },
   gameWidth: function () {
     return this.gameHeight() / 1.685;
-
   },
   screenBGColor: "#B8C0AB",
   gameColor: "#F2F2F2",
@@ -102,45 +88,6 @@ function getScreenText(text, type) {
   );
 }
 
-function GetKnob(color, dotColor, name) {
-  let startValue = knob[name].midi;
-  return (
-    <input
-      key={name}
-      value={startValue}
-      style={{ padding: 0, display: "inline-block", marginLeft: "5%" }}
-      type="range"
-      className="input-knob"
-      data-bgcolor={color}
-      data-fgcolor={dotColor}
-      data-diameter={parseInt(appStyles.gameWidth() / 7)}
-      min={0}
-      max={127}
-      name={name}
-    />
-  );
-}
-
-const grainKnobs = () => [
-  GetKnob("#7AB2E3", "#0071BC", "one"),
-  GetKnob("#61CD77", "#009245", "two"),
-  GetKnob("#FFFEFF", "#CCCCCC", "three"),
-  GetKnob("#FE6D2C", "#BD5226", "four"),
-];
-
-const fxKnobs = () => [
-  GetKnob("#7AB2E3", "#0071BC", "five"),
-  GetKnob("#61CD77", "#009245", "six"),
-  GetKnob("#FFFEFF", "#CCCCCC", "seven"),
-  GetKnob("#FE6D2C", "#BD5226", "eight"),
-];
-const videoKnobs = () => [
-  GetKnob("#7AB2E3", "#0071BC", "nine"),
-  GetKnob("#61CD77", "#009245", "ten"),
-  GetKnob("#FFFEFF", "#CCCCCC", "eleven"),
-  GetKnob("#FE6D2C", "#BD5226", "twelve"),
-];
-
 function App() {
   const [disp, setDisp] = React.useState({
     modes: ["Video Synth", "Select_Audio"],
@@ -156,8 +103,6 @@ function App() {
 
   const [paramDisplay, setParamDisplay] = React.useState();
   const [dPad, setDPad] = React.useState(img.btn.dPad);
-  const [topKnobs, setTopKnobs] = React.useState(grainKnobs);
-  
 
   const getSoundList = () => {
     let out = [];
@@ -173,7 +118,11 @@ function App() {
   };
 
   const screen =
-    disp.selected() === "Select_Audio" ? getSoundList() : videoSynth;
+    disp.selected() === "Select_Audio"
+      ? getSoundList()
+      : isStarted
+      ? VideoSynth()
+      : [];
 
   function pushAudio(files) {
     let file;
@@ -224,13 +173,15 @@ function App() {
 
   const firstInput = () => {
     if (isStarted === false) {
-      handleStart()
-      isStarted = true
+      grainSampler.start();
+
+      isStarted = true;
+      getParamDisplay("boot");
     }
-  }
+  };
 
   let getParamDisplay = (text) => {
-    if (text) {
+    if (text && isStarted) {
       clearTimeout(paramTimer);
 
       let display = () => {
@@ -256,125 +207,225 @@ function App() {
     }
   };
 
+  const knobStyle = { position: "relative", marginLeft: "6%" };
+
+  const grainKnobs = [
+    <Knob
+      key="grainSizeknb"
+      initVal={knbSave[0]}
+      style={knobStyle}
+      diameter="8vh"
+      color="#7AB2E3"
+      pointerColor="#0071BC"
+      action={(midi, val) => {
+        let param;
+        let adjValue = parseInt(val * (noteArray.length - 1));
+        let note = noteArray[adjValue];
+        let noteLength = time.note(note).time;
+        let display = time.note(note).display;
+        grainSampler.grainSize = noteLength * grainSampler.playbackRate;
+        param = "grain " + display;
+        getParamDisplay(param);
+        knbSave[0] = midi;
+      }}
+    />,
+    <Knob
+      key="grainOverlapKnb"
+      initVal={knbSave[1]}
+      style={knobStyle}
+      diameter="8vh"
+      color="#61CD77"
+      pointerColor="#009245"
+      action={(midi, val) => {
+        let param;
+        let adjValue = 0;
+        if (val < 0.8) {
+          adjValue = parseInt(val * 10);
+        } else {
+          adjValue = parseInt(val * 30);
+        }
+        //change the volume to be even, volume change delayed to prevent glitching
+        if (grainSampler.overlap === 0 && adjValue > 0) {
+          setTimeout(() => {
+            grainSampler.volume.value = 7;
+          }, 500);
+        } else if (adjValue === 0) {
+          grainSampler.volume.value = -6;
+        }
+        grainSampler.overlap = adjValue;
+        param = "overlap " + grainSampler.overlap;
+        getParamDisplay(param);
+        knbSave[1] = midi;
+      }}
+    />,
+    <Knob
+      key="grainStartKnb"
+      initVal={knbSave[2]}
+      style={knobStyle}
+      diameter="8vh"
+      color="#FFFEFF"
+      pointerColor="#CCCCCC"
+      action={(midi, val) => {
+        let param;
+        grainSampler.loopStart = val * grainSampler.buffer.duration;
+        grainSampler.loopEnd = sample.loopEnd();
+        console.log(
+          "start " + grainSampler.loopStart + " end " + grainSampler.loopEnd
+        );
+        param = "start " + grainSampler.loopStart.toFixed(2);
+        getParamDisplay(param);
+        knbSave[2] = midi;
+      }}
+    />,
+    <Knob
+      key="grainLengthKnb"
+      initVal={knbSave[3]}
+      style={knobStyle}
+      diameter="8vh"
+      color="#FE6D2C"
+      pointerColor="#BD5226"
+      action={(midi, val) => {
+        let param;
+        let adjValue = parseInt(val * (noteArray.length - 1));
+        let note = noteArray[adjValue];
+        let noteLength = time.note(note).time;
+        let display = time.note(note).display;
+        sample.loopLength = noteLength * grainSampler.playbackRate;
+        grainSampler.loopEnd = sample.loopEnd();
+        console.log(grainSampler.loopEnd);
+        param = "length  " + display;
+        getParamDisplay(param);
+        knbSave[3] = midi;
+      }}
+    />,
+  ];
+  const fxKnobs = [
+    <Knob
+      key="cutoffKnb"
+      initVal={knbSave[4]}
+      style={knobStyle}
+      diameter="8vh"
+      color="#7AB2E3"
+      pointerColor="#0071BC"
+      action={(midi, val) => {
+        let logVal = Math.pow((val + 0.38) * 5.2, 5);
+        filter.frequency.value = 0.1 + logVal;
+        let param = "cutoff " + parseInt(filter.frequency.value);
+        getParamDisplay(param);
+        knbSave[4] = midi;
+      }}
+    />,
+    <Knob
+      key="resKnb"
+      initVal={knbSave[5]}
+      style={knobStyle}
+      diameter="8vh"
+      color="#61CD77"
+      pointerColor="#009245"
+      action={(midi, val) => {
+        let q = filter.Q.value;
+        filter.Q.value = val * 10;
+        let param = "res " + q.toFixed(2);
+        getParamDisplay(param);
+        knbSave[5] = midi;
+      }}
+    />,
+    <Knob
+      key="pitchMixknb"
+      initVal={knbSave[6]}
+      style={knobStyle}
+      diameter="8vh"
+      color="#FFFEFF"
+      pointerColor="#CCCCCC"
+      action={(midi, val) => {
+        pitchMix.fade.value = val <= 0.04 ? 0 : val;
+        pitchShift.feedback.value = val / 2;
+        let param = pitchMix.fade.value.toFixed(2);
+        getParamDisplay("wet " + param);
+        knbSave[6] = midi;
+      }}
+    />,
+    <Knob
+      key="delayTimeKnb"
+      initVal={knbSave[7]}
+      style={knobStyle}
+      diameter="8vh"
+      color="#FE6D2C"
+      pointerColor="#BD5226"
+      action={(midi, val) => {
+        let size = val;
+        pitchShift.delayTime.value = size;
+        let param = pitchShift.delayTime;
+        getParamDisplay("delay " + param);
+        knbSave[7] = midi;
+      }}
+    />,
+  ];
+
+  const videoKnobs = [
+    <Knob
+      key="gragKnb"
+      initVal={knbSave[8]}
+      style={knobStyle}
+      diameter="8vh"
+      color="#7AB2E3"
+      pointerColor="#0071BC"
+      action={(midi, val) => {
+        vid.frag = num.tenth(1 + val * 6);
+        let param = "frag " + vid.frag;
+        getParamDisplay(param);
+        knbSave[8] = midi;
+      }}
+    />,
+    <Knob
+      key="CopyKnb"
+      initVal={knbSave[9]}
+      style={knobStyle}
+      diameter="8vh"
+      color="#61CD77"
+      pointerColor="#009245"
+      action={(midi, val) => {
+        vid.busy = parseInt(5200 - (200 + val * 5000));
+        let param = "copy " + vid.busy;
+        getParamDisplay(param);
+        knbSave[9] = midi;
+      }}
+    />,
+    <Knob
+      key="shiftKnb"
+      initVal={knbSave[10]}
+      style={knobStyle}
+      diameter="8vh"
+      color="#FFFEFF"
+      pointerColor="#CCCCCC"
+      action={(midi, val) => {
+        vid.shift = num.tenth(-4 + val * 8);
+        let param = "tilt " + vid.shift;
+        getParamDisplay(param);
+        knbSave[10] = midi;
+      }}
+    />,
+    <Knob
+      key="threshKnb"
+      initVal={knbSave[11]}
+      style={knobStyle}
+      diameter="8vh"
+      color="#FE6D2C"
+      pointerColor="#BD5226"
+      action={(midi, val) => {
+        vid.speed = val > 0.1 ? val * 8 : val;
+        let param = "threshold " + vid.speed.toFixed(2);
+        getParamDisplay(param);
+        knbSave[11] = midi;
+      }}
+    />,
+  ];
+  const [topKnobs, setTopKnobs] = React.useState(grainKnobs);
   const refreshKnobs = () => {
-    knob.one.action();
-    knob.four.action();
+    console.log(grainKnobs);
+    grainKnobs[0].props.action(knbSave[0], knbSave[0] / 127);
+    grainKnobs[3].props.action(knbSave[3], knbSave[3] / 127);
   };
-
-  knob.one.action = () => {
-    let param;
-    let _knob = knob.one;
-    let adjValue = parseInt(_knob.val() * (noteArray.length - 1));
-    let note = noteArray[adjValue];
-    let noteLength = time.note(note).time;
-    let display = time.note(note).display;
-    grainSampler.grainSize = noteLength * grainSampler.playbackRate;
-    param = "grain " + display;
-    getParamDisplay(param);
-  };
-  knob.two.action = () => {
-    let param;
-    let _knob = knob.two;
-
-    let adjValue = 0;
-    if (_knob.val() < 0.8) {
-      adjValue = parseInt(_knob.val() * 10);
-    } else {
-      adjValue = parseInt(_knob.val() * 30);
-    }
-    //change the volume to be even, volume change delayed to prevent glitching
-    if (grainSampler.overlap === 0 && adjValue > 0) {
-      setTimeout(() => {
-        grainSampler.volume.value = 7;
-      }, 500);
-    } else if (adjValue === 0) {
-      grainSampler.volume.value = -6;
-    }
-    grainSampler.overlap = adjValue;
-    param = "overlap " + grainSampler.overlap;
-    getParamDisplay(param);
-  };
-  knob.three.action = () => {
-    // grainSampler.start();
-    let param;
-    let _knob = knob.three;
-    grainSampler.loopStart = _knob.val() * grainSampler.buffer.duration;
-    grainSampler.loopEnd = sample.loopEnd();
-    console.log(
-      "start " + grainSampler.loopStart + " end " + grainSampler.loopEnd
-    );
-    param = "start " + grainSampler.loopStart.toFixed(2);
-    getParamDisplay(param);
-  };
-  knob.four.action = function () {
-    let param;
-    let _knob = knob.four;
-    let adjValue = parseInt(_knob.val() * (noteArray.length - 1));
-    let note = noteArray[adjValue];
-    let noteLength = time.note(note).time;
-    let display = time.note(note).display;
-    sample.loopLength = noteLength * grainSampler.playbackRate;
-    grainSampler.loopEnd = sample.loopEnd();
-    console.log(grainSampler.loopEnd);
-    param = "length  " + display;
-    getParamDisplay(param);
-
-    // console.log("start " + grainSampler.loopStart + " end " + grainSampler.loopEnd);
-  };
-  knob.five.action = () => {
-    let _knob = knob.five;
-    let logVal = Math.pow((_knob.val() + 0.38) * 5.2, 5);
-    filter.frequency.value = 0.1 + logVal;
-    let param = "cutoff " + parseInt(filter.frequency.value);
-    getParamDisplay(param);
- 
-  };
-  knob.six.action = () => {
-    let _knob = knob.six;
-    let q = filter.Q.value;
-    filter.Q.value = _knob.val() * 10;
-    let param = "res " + q.toFixed(2);
-    getParamDisplay(param);
-  };
-  knob.seven.action = () => {
-    const _knob = knob.seven;
-    pitchMix.fade.value = _knob.val() <= 0.04 ? 0 : _knob.val();
-    pitchShift.feedback.value = _knob.val() / 2;
-    let param = pitchMix.fade.value.toFixed(2);
-    getParamDisplay("wet " + param);
-  };
-  knob.eight.action = () => {
-    const _knob = knob.eight;
-    let size = parseFloat(_knob.val());
-    pitchShift.delayTime.value = size;
-    let param = pitchShift.delayTime;
-    getParamDisplay("delay " + param);
-  };
-  knob.nine.action = () => {
-    const _knob = knob.nine;
-    vid.frag = num.tenth(1 + _knob.val() * 6);
-    let param = "frag " + vid.frag;
-    getParamDisplay(param);
-  };
-  knob.ten.action = () => {
-    const _knob = knob.ten;
-    vid.busy = parseInt(5200 - (200 + _knob.val() * 5000));
-    let param = "copy " + vid.busy;
-    getParamDisplay(param);
-  };
-  knob.eleven.action = () => {
-    const _knob = knob.eleven;
-    vid.shift = num.tenth(-4 + _knob.val() * 8);
-    let param = "tilt " + vid.shift;
-    getParamDisplay(param);
-  };
-  knob.twelve.action = () => {
-    const _knob = knob.twelve;
-    vid.speed = _knob.val() > 0.1 ? _knob.val() * 8 : _knob.val();
-    let param = "threshold " + vid.speed.toFixed(2);
-    getParamDisplay(param);
-  };
-
   const aClick = () => {
     let param = "grain synth";
     setTopKnobs(grainKnobs);
@@ -521,94 +572,90 @@ function App() {
   const handleDrop = (e) => {
     e.preventDefault();
     e.stopPropagation();
-  }
+  };
   useEffect(() => {
     Modules.patch();
-    for (let dial in knob) {
-      knob[dial].action();
-    }
-    firstInput();
-    
+    //initiate default state
+    grainKnobs.map((knob, key) =>
+      knob.props.action(knbSave[key], knbSave[key] / 127)
+    );
+    fxKnobs.map((knob, key) =>
+      knob.props.action(knbSave[key + 4], knbSave[key + 4] / 127)
+    );
+    videoKnobs.map((knob, key) =>
+      knob.props.action(knbSave[key + 8], knbSave[key + 8] / 127)
+    );
+
     // console.log ("w " + Document.onmousemove + " " + window.innerWidth)
     // sample.loopEnd = function () { return (grainSampler.loopStart + this.loopLength) % grainSampler.buffer.duration  }
   }, []);
-
+  const grainStyle = window.innerWidth > window.innerHeight ? {height: "100vh", width: "59.35vh"}: {width: "100vw", height: "165vw"}
   return (
-      <div
-        
-        onDrop = {e => handleDrop(e)}
-        key="game"
-        className="grainboi"
-        style={{
-          // touchAction: "none",
-          position: "absolute",
-    
-          width: appStyles.gameWidth(),
-          height: appStyles.gameHeight(),
-        }}
-      >
-        <Knob style={{background: "green"}} diameter="10vh" color="blue" action={(midi, val) => console.log(midi)}/>
-        <div className="display">
-          {screen}
-          {paramDisplay}
-        </div>
-        {AddFile()}
-        <div className="knob-bar">{topKnobs}</div>
-        <div className="button-area">
-          <div className="btn-circle"></div>
-          <div
-            style={{ right: "8.8%", top: "21.2%" }}
-            className="btn-circle"
-          ></div>
-          <button className="a-button" onMouseDown={aClick}></button>
-          <button className="b-button" onMouseDown={bClick}></button>
-          <div className="dPad">
-            <img
-              src={img.btn.dBack}
-              style={{ position: "absolute", width: "105%", right: "-2%" }}
-            ></img>
-            <img
-              src={dPad}
-              style={{ position: "absolute", width: "100%" }}
-            ></img>
-            <button
-              className="d-btn"
-              style={{ left: "33%" }}
-              onMouseDown={upPad}
-              onMouseUp={() => setDPad(img.btn.dPad)}
-            ></button>
-            <button
-              className="d-btn"
-              style={{ bottom: 0, left: "33%" }}
-              onMouseDown={downPad}
-              onMouseUp={() => setDPad(img.btn.dPad)}
-            ></button>
-            <button
-              className="d-btn"
-              style={{ bottom: "33%", left: 0 }}
-              onMouseDown={leftPad}
-              onMouseUp={() => setDPad(img.btn.dPad)}
-            ></button>
-            <button
-              className="d-btn"
-              style={{ bottom: "33%", right: 0 }}
-              onMouseDown={rightPad}
-              onMouseUp={() => setDPad(img.btn.dPad)}
-            ></button>
-          </div>
-          <button
-            className="sel-button"
-            style={{ left: "33%" }}
-            onMouseDown={selClick}
-          ></button>
-          <button
-            className="sel-button"
-            style={{ right: "33%" }}
-            onMouseDown={startClick}
-          ></button>
-        </div>
+    <div
+      onMouseEnter={() => firstInput()}
+      onTouchStart={() => firstInput()}
+      onDrop={(e) => handleDrop(e)}
+      key="game"
+      className="grainboi"
+      style={grainStyle}
+    >
+      <div className="display">
+        {screen}
+        {paramDisplay}
       </div>
-   
+      {AddFile()}
+      <div className="knob-bar">{topKnobs}</div>
+      <div className="button-area">
+        <div className="btn-circle"></div>
+        <div
+          style={{ right: "8.8%", top: "21.2%" }}
+          className="btn-circle"
+        ></div>
+        <button className="a-button" onMouseDown={aClick}></button>
+        <button className="b-button" onMouseDown={bClick}></button>
+        <div className="dPad">
+          <img
+            src={img.btn.dBack}
+            style={{ position: "absolute", width: "105%", right: "-2%" }}
+          ></img>
+          <img src={dPad} style={{ position: "absolute", width: "100%" }}></img>
+          <button
+            className="d-btn"
+            style={{ left: "33%" }}
+            onMouseDown={upPad}
+            onMouseUp={() => setDPad(img.btn.dPad)}
+          ></button>
+          <button
+            className="d-btn"
+            style={{ bottom: 0, left: "33%" }}
+            onMouseDown={downPad}
+            onMouseUp={() => setDPad(img.btn.dPad)}
+          ></button>
+          <button
+            className="d-btn"
+            style={{ bottom: "33%", left: 0 }}
+            onMouseDown={leftPad}
+            onMouseUp={() => setDPad(img.btn.dPad)}
+          ></button>
+          <button
+            className="d-btn"
+            style={{ bottom: "33%", right: 0 }}
+            onMouseDown={rightPad}
+            onMouseUp={() => setDPad(img.btn.dPad)}
+          ></button>
+        </div>
+        <button
+          className="sel-button"
+          style={{ left: "33%" }}
+          onMouseDown={selClick}
+        ></button>
+        <button
+          className="sel-button"
+          style={{ right: "33%" }}
+          onMouseDown={startClick}
+        ></button>
+      </div>
+    </div>
   );
 }
 

@@ -24,8 +24,11 @@
   color: white;
 }
 .grainboi{
+ 
   padding: 0;
-  position: relative;
+  position: absolute;
+  width: 59.35vh;
+  height: 100vh;
   left: 0;
   right: 0;
   margin: 0 auto;  
@@ -82,6 +85,7 @@
  
   
 }
+
 .button-area {
   position: relative;
   height: 47%;
@@ -176,6 +180,7 @@
   /* background-image: url("./assets/4x/dBack.png");
   background-size: cover;
   background-repeat: no-repeat; */
+  touch-action: none;
   width: 22%;
   left: 9.9%;
   top: 21%;
@@ -235,6 +240,7 @@
  
 }
 .d-btn{
+  touch-action: none;
   cursor: pointer;
   outline: none;
   position: absolute;
