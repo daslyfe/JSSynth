@@ -1,8 +1,9 @@
 import React, { useState } from "react";
-import { knob } from "./App";
-import { num } from "./utility";
 
-let startX, startY, x, y, midiVal;
+const num = {
+  tenth: (number) => parseFloat(number.toFixed(2)),
+  clamp: (number, min, max) => Math.min(Math.max(min, number), max)
+};
 
 function Knob(props) {
   const [point] = useState({
@@ -63,8 +64,7 @@ function Knob(props) {
       midi: midiVal,
       val: midiVal / 127,
     };
-    // knb.midi = midiVal;
-    // knob.val = knb.midi / 127
+
     props.action(out.midi, out.val);
     setKnb(out);
   }
