@@ -99,6 +99,7 @@ function Knob(props) {
     width: props.diameter,
     height: 0,
     paddingBottom: props.diameter,
+    userSelect: "none"
   };
   if (props.style) {
     for (let param in props.style) {

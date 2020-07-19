@@ -64,7 +64,6 @@ function VideoSynth() {
     ).parent(ref);
 
     p5.noSmooth();
-
   };
 
   let refresh = (p5, ref) => {
@@ -156,7 +155,19 @@ function VideoSynth() {
       }
     }
   };
-  return <Sketch style={{ position: "absolute", background: "gray"}} setup={setup} draw={draw} />;
+  return (
+    <Sketch
+      style={{ position: "absolute", background: "gray" }}
+      setup={setup}
+      draw={draw}
+      windowResized={(p5) =>
+        p5.resizeCanvas(
+          appStyles.gameWidth() / 1.2,
+          appStyles.gameWidth() / 1.7
+        )
+      }
+    />
+  );
 }
 
 export default VideoSynth;

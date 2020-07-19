@@ -37,23 +37,40 @@ const delayPitch = {
   },
 };
 
+const cheatCode = {
+  press: "00000000000",
+  validate: "^^vv<><>BA!",
+  success: () => window.open("https://jaderose.bandcamp.com/"),
+  add: (btn) => {
+    cheatCode.press = cheatCode.press.slice(1, 11);
+    cheatCode.press += btn;
+    if (cheatCode.press === cheatCode.validate) {
+      cheatCode.success();
+    }
+  },
+};
 const knbSave = [66, 0, 0, 0, 127, 0, 0, 0, 66, 66, 66, 40];
 
 //
-export const sample = {
+
+const sample = {
   loopLength: 0,
-  // loopEnd: function () { return (grainSampler.loopStart + this.loopLength) % grainSampler.buffer.duration  },
-  loopEnd: function () {
-    return grainSampler.loopStart + this.loopLength;
-  },
+  loopEnd: () =>
+    isStarted
+      ? (grainSampler.loopStart + sample.loopLength) %
+        grainSampler.buffer.duration
+      : grainSampler.loopStart + sample.loopLength,
+  // loopEnd: function () {
+  //   return grainSampler.loopStart + this.loopLength;
+  // },
   playbackRate: 0,
 };
 
 export const appStyles = {
-  canvasWidth: window.innerWidth,
-  canvasHeight: window.innerHeight,
+  canvasWidth: () => window.innerWidth,
+  canvasHeight: () => window.innerHeight,
   gameHeight: function () {
-    return this.canvasHeight / 1;
+    return this.canvasHeight() / 1;
   },
   gameWidth: function () {
     return this.gameHeight() / 1.685;
@@ -80,7 +97,7 @@ function getScreenText(text, type) {
     );
   }
   return (
-    <svg key={text} className="screen-text-wrapper" viewBox="0 0 100 5">
+    <svg key={text} className="screen-text-wrapper noselect" viewBox="0 0 100 5">
       <text key={text + "in"} className="screen-text" x="1" y="4">
         {text}
       </text>
@@ -116,16 +133,21 @@ function App() {
     }
     return <div className="sound-list">{out}</div>;
   };
-  const startupDisp = <div className="watermark-screen">{[
-    getScreenText(">start: play and stop"),
-    getScreenText(">select: fileselect/videosynth"),
-    getScreenText(">A: granular synth mode"),
-    getScreenText(">B: FX mode"),
-    getScreenText(">clk screen to load audio files"),
-    getScreenText(">twist knobs and use D-pad"),
-    getScreenText("to make cool soindz")
-   
-  ]}</div>
+  const startupDisp = (
+    <div className="watermark-screen">
+      {[
+        getScreenText(">start: play and stop"),
+        getScreenText(">select: fileselect/videosynth"),
+        getScreenText(">A: granular synth mode"),
+        getScreenText(">B: FX mode"),
+        getScreenText(">clk screen to load audio files"),
+        getScreenText(">twist knobs and use D-pad"),
+        getScreenText("to make cool soindz"),
+        getScreenText(""),
+        getScreenText("*cheat:Λ Λ V V < >< > B A Start "),
+      ]}
+    </div>
+  );
 
   const screen =
     disp.selected() === "Select_Audio"
@@ -276,12 +298,13 @@ function App() {
       color="#FFFEFF"
       pointerColor="#CCCCCC"
       action={(midi, val) => {
+        const bufferLength = grainSampler.buffer.duration * 0.75;
         let param;
-        grainSampler.loopStart = val * grainSampler.buffer.duration;
+        grainSampler.loopStart = val * bufferLength;
         grainSampler.loopEnd = sample.loopEnd();
-        console.log(
-          "start " + grainSampler.loopStart + " end " + grainSampler.loopEnd
-        );
+        // console.log(
+        //   "start " + grainSampler.loopStart + " end " + grainSampler.loopEnd
+        // );
         param = "start " + grainSampler.loopStart.toFixed(2);
         getParamDisplay(param);
         knbSave[2] = midi;
@@ -302,7 +325,7 @@ function App() {
         let display = time.note(note).display;
         sample.loopLength = noteLength * grainSampler.playbackRate;
         grainSampler.loopEnd = sample.loopEnd();
-        console.log(grainSampler.loopEnd);
+
         param = "length  " + display;
         getParamDisplay(param);
         knbSave[3] = midi;
@@ -432,8 +455,8 @@ function App() {
   ];
   const [topKnobs, setTopKnobs] = React.useState(grainKnobs);
   const refreshKnobs = () => {
-    console.log(grainKnobs);
     grainKnobs[0].props.action(knbSave[0], knbSave[0] / 127);
+    // grainKnobs[2].props.action(knbSave[2], knbSave[2] / 127);
     grainKnobs[3].props.action(knbSave[3], knbSave[3] / 127);
   };
   const aClick = () => {
@@ -441,6 +464,7 @@ function App() {
     setTopKnobs(grainKnobs);
     disp.set("Default");
     getParamDisplay(param);
+    cheatCode.add("A");
   };
 
   const bClick = () => {
@@ -448,6 +472,7 @@ function App() {
     setTopKnobs(fxKnobs);
     disp.set("fx");
     getParamDisplay(param);
+    cheatCode.add("B");
   };
 
   const upPad = () => {
@@ -467,6 +492,7 @@ function App() {
       vid.nextScale();
       param = "scale " + vid.scale();
     }
+    cheatCode.add("^");
     getParamDisplay(param);
   };
 
@@ -488,6 +514,7 @@ function App() {
       vid.changeColor();
       param = "color";
     }
+    cheatCode.add("v");
     getParamDisplay(param);
   };
 
@@ -517,7 +544,7 @@ function App() {
     } else if (mode === "Select_Audio") {
       time.bpm -= 1;
       refreshKnobs();
-      param = time.bpm;
+      param = "bpm " + time.bpm;
     } else if (mode === "fx") {
       pitchShift.windowSize =
         pitchShift.windowSize <= 0.01 ? 0.001 : pitchShift.windowSize - 0.01;
@@ -526,6 +553,7 @@ function App() {
       vid.nextSpeed();
       param = "scroll " + (1 + vid.scrollSpeed()).toFixed(2);
     }
+    cheatCode.add("<");
     getParamDisplay(param);
   };
 
@@ -555,7 +583,7 @@ function App() {
     } else if (mode === "Select_Audio") {
       time.bpm += 1;
       refreshKnobs();
-      param = time.bpm;
+      param = "bpm " + time.bpm;
     } else if (mode === "fx") {
       pitchShift.windowSize += 0.01;
       param = "window " + pitchShift.windowSize.toFixed(2);
@@ -563,6 +591,7 @@ function App() {
       vid.nextOp();
       param = "logic " + vid.operator();
     }
+    cheatCode.add(">");
     getParamDisplay(param);
   };
 
@@ -577,9 +606,8 @@ function App() {
   };
 
   const startClick = () => {
-    
-    handleStart();
-    firstInput();
+    if (isStarted) handleStart();
+    cheatCode.add("!");
   };
   const handleDrop = (e) => {
     e.preventDefault();
@@ -601,18 +629,23 @@ function App() {
     // console.log ("w " + Document.onmousemove + " " + window.innerWidth)
     // sample.loopEnd = function () { return (grainSampler.loopStart + this.loopLength) % grainSampler.buffer.duration  }
   }, []);
-  const grainStyle = window.innerWidth > window.innerHeight ? {height: "100vh", width: "59.35vh"}: {width: "100vw", height: "165vw"}
+  const grainStyle =
+    window.innerWidth > window.innerHeight
+      ? { height: "100vh", width: "59.35vh" }
+      : { width: "100vw", height: "165vw" };
   return (
     <div
-      onMouseDown ={(e) => {; e.preventDefault();firstInput()}}
-      onTouchStart={firstInput}
+      onMouseDown={(e) => {
+        e.preventDefault();
+        firstInput();
+      }}
+      onDrag= {e=> e.preventDefault()}
       onDrop={(e) => handleDrop(e)}
       key="game"
-      className="grainboi"
+      className="grainboi noselect"
       // style={grainStyle}
     >
       <div className="display">
-     
         {screen}
         {paramDisplay}
       </div>
@@ -624,9 +657,9 @@ function App() {
           style={{ right: "8.8%", top: "21.2%" }}
           className="btn-circle"
         ></div>
-        <button className="a-button" onMouseDown={aClick}></button>
-        <button className="b-button" onMouseDown={bClick}></button>
-        <div className="dPad">
+        <button className="a-button noselect" onMouseDown={aClick}></button>
+        <button className="b-button noselect" onMouseDown={bClick}></button>
+        <div className="dPad noselect">
           <img
             src={img.btn.dBack}
             style={{ position: "absolute", width: "105%", right: "-2%" }}
@@ -658,7 +691,7 @@ function App() {
           ></button>
         </div>
         <button
-          className="sel-button"
+          className="sel-button noselect"
           style={{ left: "33%" }}
           onMouseDown={selClick}
         ></button>

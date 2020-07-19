@@ -23,36 +23,33 @@
   font-size: calc(10px + 2vmin);
   color: white;
 }
-.grainboi{
- 
+.grainboi {
   padding: 0;
   position: absolute;
   width: 50vh;
   height: 84.25vh;
   left: 0;
   right: 0;
-  margin: 0 auto;  
-  background-image: url("./assets/4x/Grainboi.png"); 
+  margin: 0 auto;
+  background-image: url("./assets/4x/Grainboi.png");
   background-repeat: no-repeat;
   background-size: cover;
-
 }
-.display{
+.display {
   position: relative;
-  background-color: #B8C0AB;
+  background-color: #b8c0ab;
 
   padding: 0;
   width: 80%;
   height: 35%;
-  margin-bottom: 1%; 
+  margin-bottom: 1%;
   z-index: -1;
-  
-  margin:0 auto;
+
+  margin: 0 auto;
   overflow: hidden;
   top: 9%;
- 
 }
-.screen-button-overlay{
+.screen-button-overlay {
   position: absolute;
 
   top: 10%;
@@ -67,13 +64,11 @@
   width: 80%;
 }
 .sound-list {
-
- 
   padding: 2%;
   padding-top: 3%;
 }
 .watermark-screen {
-/* 
+  /* 
   background-image: url("./assets/4x/hex_watermark3.png"); */
   width: 100%;
   height: 100%;
@@ -81,40 +76,43 @@
   padding-top: 3%;
   background-repeat: no-repeat;
   background-size: 100%;
-
 }
-.knob-bar{
+.noselect {
  
-    position: "relative";
-    width: 78%;
-   
-    padding: 0px;
-    height: 10%;
-    margin: 0 auto;
-    margin-top: 14.5%;
- 
-  
+  -webkit-touch-callout: none; /* iOS Safari */
+  -webkit-user-select: none; /* Safari */
+  -khtml-user-select: none; /* Konqueror HTML */
+  -moz-user-select: none; /* Old versions of Firefox */
+  -ms-user-select: none; /* Internet Explorer/Edge */
+  user-select: none; /* Non-prefixed version, currently
+                                 supported by Chrome, Edge, Opera and Firefox */
+}
+.knob-bar {
+  position: "relative";
+  width: 78%;
+
+  padding: 0px;
+  height: 10%;
+  margin: 0 auto;
+  margin-top: 14.5%;
 }
 
 .button-area {
   position: relative;
   height: 47%;
   bottom: 0%;
-  
-  
 }
-.btn-circle{
-
+.btn-circle {
   position: absolute;
   background-color: rgb(90, 90, 90);
-  border-radius: 50%; 
+  border-radius: 50%;
   right: 24%;
   top: 33%;
   width: 12.2%;
   /* padding: 0; */
-  padding-bottom: 12.2%; 
+  padding-bottom: 12.2%;
 }
-.a-button{
+.a-button {
   outline: none;
   position: absolute;
   border: none;
@@ -129,16 +127,17 @@
   background-size: contain;
   background-repeat: no-repeat;
   cursor: pointer;
-  opacity: .9;
+  opacity: 0.9;
 }
 .a-button:active {
   top: 21.5%;
-  width: 11.8%; right: 8.8%;
+  width: 11.8%;
+  right: 8.8%;
   padding-bottom: 11.8%;
   opacity: 1;
 }
 
-.b-button{ 
+.b-button {
   outline: none;
   position: absolute;
   border: none;
@@ -154,15 +153,16 @@
   background-size: contain;
   background-repeat: no-repeat;
   cursor: pointer;
-  opacity: .9;
+  opacity: 0.9;
 }
 .b-button:active {
   top: 33.5%;
-  width: 11.8%; right: 23.9%;
+  width: 11.8%;
+  right: 23.9%;
   padding-bottom: 11.8%;
   opacity: 1;
 }
-.sel-button{ 
+.sel-button {
   cursor: pointer;
   outline: none;
   position: absolute;
@@ -179,13 +179,10 @@
   cursor: pointer;
 }
 .sel-button:active {
-
-  opacity: .9;
+  opacity: 0.9;
   bottom: 24.4%;
-
 }
-.dPad{
-
+.dPad {
   position: absolute;
   /* background-image: url("./assets/4x/dBack.png");
   background-size: cover;
@@ -196,82 +193,74 @@
   top: 21%;
   padding: 0;
   padding-bottom: 22%;
-
 }
-.screen-text-wrapper{
+.screen-text-wrapper {
   display: block;
   padding: 0;
   margin: 0;
-  overflow-x: hidden ;
-
+  overflow-x: hidden;
 }
-.screen-text-wrapper-select{
+.screen-text-wrapper-select {
   display: block;
 
-  background-color: #3f3f3f ;
-  box-shadow: -1px 2.5px #919191;
+  background-color: #3f3f3f;
+  /* box-shadow: -1px 2.5px #919191; */
   margin: 0;
-  overflow-x: hidden ;
+  overflow-x: hidden;
 }
-.screen-text{
+.screen-text {
   font-size: 3px;
   fill: #3f3f3f;
   text-shadow: -1px 2.5px #a7a7a7;
 }
-.param-text-wrapper{
+.param-text-wrapper {
   display: block;
   padding: 0;
   margin: 0;
-  overflow-x: hidden ;
+  overflow-x: hidden;
   border-radius: 0px;
-  background-color: #3f3f3f ;
+  background-color: #3f3f3f;
   box-shadow: -1px 2.5px #919191;
-
 }
-.param-text{
+.param-text {
   font-size: 6px;
-  fill: #B8C0AB;
-
-
+  fill: #b8c0ab;
 }
-.screen-text-select{
+.screen-text-select {
   font-size: 3px;
-  fill: #B8C0AB;
-
+  fill: #b8c0ab;
 }
 
-.param-display{
+.param-display {
   position: absolute;
 
   width: 50%;
   height: 10%;
   top: 4%;
   right: 2%;
- 
 }
-.d-btn{
+.d-btn {
   touch-action: none;
   cursor: pointer;
   outline: none;
   position: absolute;
   border: none;
   background-color: transparent;
-  opacity: .2;
+  opacity: 0.2;
   width: 34%;
-  
+
   height: 33%;
   padding: 0;
   padding-bottom: 8%;
-
 }
 
-.d-btn:active{
+.d-btn:active {
   background-color: white;
-  opacity: .2;
+  opacity: 0.2;
 }
 .grain-bg {
-  position: absolute; 
-  z-index: -5;  
+  position: absolute;
+  z-index: -5;
 }
 .App-link {
   color: #61dafb;
