@@ -156,7 +156,7 @@ function VideoSynth() {
       }
     }
   };
-  return <Sketch style={{ position: "absolute", background: "blue"}} setup={setup} draw={draw} />;
+  return <Sketch style={{ position: "absolute", background: "gray"}} setup={setup} draw={draw} />;
 }
 
 export default VideoSynth;

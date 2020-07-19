@@ -2,7 +2,7 @@ import React, { useState } from "react";
 
 const num = {
   tenth: (number) => parseFloat(number.toFixed(2)),
-  clamp: (number, min, max) => Math.min(Math.max(min, number), max)
+  clamp: (number, min, max) => Math.min(Math.max(min, number), max),
 };
 
 function Knob(props) {
@@ -44,7 +44,6 @@ function Knob(props) {
   };
 
   function elementDrag(e) {
-    console.log("dragging");
     e = e || window.event;
     e.preventDefault();
     if (e.type === "touchmove") {
@@ -74,7 +73,6 @@ function Knob(props) {
     document.onmouseup = null;
     document.ontouchmove = null;
     document.ontouchend = null;
-    console.log("mouseup");
   };
   const drag = (e) => {
     e = e || window.event;
@@ -87,7 +85,6 @@ function Knob(props) {
       point.startY = e.clientY;
     }
 
-    // document.onmousemove = () => {console.log('ugduhdhu')}
     document.ontouchmove = (e) => elementDrag(e);
     document.ontouchend = (e) => stopDrag(e);
     document.onmouseup = (e) => stopDrag(e);

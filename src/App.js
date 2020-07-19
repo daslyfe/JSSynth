@@ -116,13 +116,23 @@ function App() {
     }
     return <div className="sound-list">{out}</div>;
   };
+  const startupDisp = <div className="watermark-screen">{[
+    getScreenText(">start: play and stop"),
+    getScreenText(">select: fileselect/videosynth"),
+    getScreenText(">A: granular synth mode"),
+    getScreenText(">B: FX mode"),
+    getScreenText(">clk screen to load audio files"),
+    getScreenText(">twist knobs and use D-pad"),
+    getScreenText("to make cool soindz")
+   
+  ]}</div>
 
   const screen =
     disp.selected() === "Select_Audio"
       ? getSoundList()
       : isStarted
       ? VideoSynth()
-      : [];
+      : startupDisp;
 
   function pushAudio(files) {
     let file;
@@ -567,7 +577,9 @@ function App() {
   };
 
   const startClick = () => {
+    
     handleStart();
+    firstInput();
   };
   const handleDrop = (e) => {
     e.preventDefault();
@@ -592,14 +604,15 @@ function App() {
   const grainStyle = window.innerWidth > window.innerHeight ? {height: "100vh", width: "59.35vh"}: {width: "100vw", height: "165vw"}
   return (
     <div
-      onMouseEnter={() => firstInput()}
-      onTouchStart={() => firstInput()}
+      onMouseDown ={(e) => {; e.preventDefault();firstInput()}}
+      onTouchStart={firstInput}
       onDrop={(e) => handleDrop(e)}
       key="game"
       className="grainboi"
       // style={grainStyle}
     >
       <div className="display">
+     
         {screen}
         {paramDisplay}
       </div>
