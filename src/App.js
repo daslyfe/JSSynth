@@ -9,7 +9,7 @@ import SoundData from "./soundData";
 import Time from "./time";
 import { ar, num } from "./utility";
 import "./App.css";
-import Knob from "./simpleKnob";
+import Knob from './simpleKnob'
 
 const grainSampler = Modules.grainSampler;
 const filter = Modules.filter;
@@ -645,6 +645,7 @@ function App() {
       className="grainboi noselect"
       // style={grainStyle}
     >
+      
       <div className="display">
         {screen}
         {paramDisplay}
