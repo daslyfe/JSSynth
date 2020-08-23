@@ -40,7 +40,7 @@ const delayPitch = {
 const cheatCode = {
   press: "00000000000",
   validate: "^^vv<><>BA!",
-  success: () => window.open("https://jaderose.bandcamp.com/"),
+  success: () => window.open("https://waterkeeper.org/donate/"),
   add: (btn) => {
     cheatCode.press = cheatCode.press.slice(1, 11);
     cheatCode.press += btn;
