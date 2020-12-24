@@ -4,6 +4,7 @@ import soundData from "../dsp/soundData";
 import VideoSynth from "./sketch";
 
 function getScreenText(text, type) {
+  //highlight the text if it is selected
   if (type === "select") {
     return (
       <svg
@@ -61,6 +62,8 @@ const StartupDisp = () => (
 );
 
 function Display({ paramText, displayMode, isStarted }) {
+
+  //returns the correct visuals for whatever mode state is active
   const screen = 
     displayMode.selected() === "Select_Audio" ? (
       <SoundList />

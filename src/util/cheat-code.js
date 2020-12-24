@@ -2,7 +2,7 @@ const CheatCode = {
     press: "00000000000",
     validate: "^^vv<><>BA!",
     success() {
-      window.open("https://waterkeeper.org/donate/");
+      window.open("https://www.givewell.org/");
     },
     add(btn) {
       this.press = this.press.slice(1, 11);

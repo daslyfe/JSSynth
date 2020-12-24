@@ -294,9 +294,10 @@ function App() {
   //controls which set of knobs is displayed
   const [topKnobs, setTopKnobs] = React.useState(grainKnobs);
 
+  
+  //refreshes time based parameters so the buffer length stays consistent when the length of the sample is changed
   const refreshKnobs = () => {
     grainKnobs[0].props.action(knbSave[0], knbSave[0] / 127);
-    // grainKnobs[2].props.action(knbSave[2], knbSave[2] / 127);
     grainKnobs[3].props.action(knbSave[3], knbSave[3] / 127);
   };
   const aClick = () => {

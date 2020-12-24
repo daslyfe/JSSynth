@@ -21,11 +21,11 @@ const Time = {
     [32, false],
   ],
   note: function (noteData) {
-    let note = noteData[0];
-    let dot = noteData[1];
+    const note = noteData[0];
+    const dot = noteData[1];
     let out = 60 / this.bpm / note;
+    let display;
 
-    let display = null;
     if (note >= 1) {
       display = "1/" + note;
     } else {

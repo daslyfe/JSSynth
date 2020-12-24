@@ -4,6 +4,7 @@ import sample3 from "../samples/SciDrum.mp3";
 import sample4 from "../samples/Eidolon.mp3";
 
 const SoundData = {
+  //references to local files are stored as an array of pages
   files: {
     0: [
       { name: "boot.mp3", path: sample1 },
@@ -28,7 +29,7 @@ const SoundData = {
         this.selected += 1;
       }
     }
-    let currentFile = this.files[this.currentPage][this.selected];
+    const currentFile = this.files[this.currentPage][this.selected];
     if (currentFile) {
       return currentFile.path;
     }
@@ -49,7 +50,7 @@ const SoundData = {
         this.selected -= 1;
       }
     }
-    let currentFile = this.files[this.currentPage][this.selected];
+    const currentFile = this.files[this.currentPage][this.selected];
     if (currentFile) {
       return currentFile.path;
     }

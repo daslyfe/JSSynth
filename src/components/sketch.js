@@ -99,13 +99,13 @@ function VideoSynth() {
 
     const density = low;
 
-
+    //references browser width and height on every update to ensure that it correctly scales 
     const screenWidth = vid.getScreenWidth();
     const screenHeight = vid.getScreenHeight();
 
     vid.t += 1;
 
-    //uses differnt logic operators to display pixes in a scanning fashion, three selectable modes
+    //uses different logic operators to display pixes in a scanning fashion, three selectable modes
     if (vid.operator() === "AND") {
       for (let y = 0; y < screenWidth; y++) {
         for (let x = 0; x < screenHeight; x++) {
