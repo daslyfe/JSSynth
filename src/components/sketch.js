@@ -1,8 +1,8 @@
 import React from "react";
 import Sketch from "react-p5";
-import Modules from "./modules";
-import { ar } from "./utility";
-import { appStyles } from "./App";
+import Modules from "../dsp/modules";
+import { ar } from "../utility";
+import { appStyles } from "../App";
 
 export const vid = {
   frag: 1, //between 1 and 10

@@ -1,7 +1,7 @@
-import sample1 from "./samples/boot.mp3";
-import sample2 from "./samples/NASA_RadioTelescope.mp3";
-import sample3 from "./samples/SciDrum.mp3";
-import sample4 from "./samples/Eidolon.mp3";
+import sample1 from "../samples/boot.mp3";
+import sample2 from "../samples/NASA_RadioTelescope.mp3";
+import sample3 from "../samples/SciDrum.mp3";
+import sample4 from "../samples/Eidolon.mp3";
 
 const SoundData = {
   files: {

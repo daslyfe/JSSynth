@@ -3,13 +3,14 @@ import Tone from "tone";
 
 import { img } from "./images";
 import MidiInput, { midiPatch } from "./midi.js";
-import VideoSynth, { vid } from "./sketch";
-import Modules from "./modules";
-import soundData from "./soundData";
-import time from "./time";
+import { vid } from "./components/sketch";
+import Modules from "./dsp/modules";
+import soundData from "./dsp/soundData";
+import time from "./dsp/time";
 import { ar, num } from "./utility";
 import "./App.css";
 import Knob from "./simpleKnob";
+import Display from "./components/display";
 
 const { pitchShift, grainSampler, filter, pitchMix } = Modules;
 const { noteArray } = time;
@@ -53,9 +54,9 @@ const sample = {
   loopLength: 0,
   loopEnd: () =>
     isStarted
-      ? (grainSampler.loopStart + sample.loopLength) %
-        grainSampler.buffer.duration
-      : grainSampler.loopStart + sample.loopLength,
+      ? parseFloat((grainSampler.loopStart + sample.loopLength) %
+        grainSampler.buffer.duration)
+      : parseFloat(grainSampler.loopStart + sample.loopLength),
 
   playbackRate: 0,
 };
@@ -76,35 +77,10 @@ export const appStyles = {
 
 let paramTimer;
 
-function getScreenText(text, type) {
-  if (type === "select") {
-    return (
-      <svg
-        key={text}
-        className="screen-text-wrapper-select"
-        viewBox="0 0 100 5"
-      >
-        <text key={text + "in"} className="screen-text-select" x="1" y="4">
-          {text}
-        </text>
-      </svg>
-    );
-  }
-  return (
-    <svg
-      key={text}
-      className="screen-text-wrapper noselect"
-      viewBox="0 0 100 5"
-    >
-      <text key={text + "in"} className="screen-text" x="1" y="4">
-        {text}
-      </text>
-    </svg>
-  );
-}
+
 
 function App() {
-  const [disp, setDisp] = React.useState({
+  const [displayMode, setDisplayMode] = React.useState({
     modes: ["Video Synth", "Select_Audio"],
     selected: () => "Default",
     next() {
@@ -116,43 +92,21 @@ function App() {
     },
   });
 
-  const [paramDisplay, setParamDisplay] = React.useState();
+  
   const [dPad, setDPad] = React.useState(img.btn.dPad);
+  const [paramText, setParamText] = React.useState();
 
-  const getSoundList = () => {
-    let out = [];
-    for (let file in soundData.files[soundData.currentPage]) {
-      let fileList = soundData.files[soundData.currentPage];
-      if (fileList[file] === fileList[soundData.selected]) {
-        out.push(getScreenText(fileList[file].name, "select"));
-      } else {
-        out.push(getScreenText(fileList[file].name));
-      }
+  const updateParamText = (text) => {
+    if (text && isStarted) {
+      clearTimeout(paramTimer);
+      setParamText(text);
+      paramTimer = setTimeout(() => setParamText([]), 1000);
     }
-    return <div className="sound-list">{out}</div>;
   };
-  const startupDisp = (
-    <div className="watermark-screen">
-      {[
-        getScreenText(">start: play and stop"),
-        getScreenText(">select: fileselect/videosynth"),
-        getScreenText(">A: granular synth mode"),
-        getScreenText(">B: FX mode"),
-        getScreenText(">clk screen to load audio files"),
-        getScreenText(">twist knobs and use D-pad"),
-        getScreenText("to make cool soindz"),
-        getScreenText(""),
-        getScreenText("*cheat:Λ Λ V V < >< > B A Start "),
-      ]}
-    </div>
-  );
 
-  const screen =
-    disp.selected() === "Select_Audio"
-      ? getSoundList()
-      : isStarted
-      ? VideoSynth()
-      : startupDisp;
+
+
+  
 
   //get data from file uploads and add it to the sound data array
   function pushAudio(soundFiles) {
@@ -166,8 +120,8 @@ function App() {
       soundData.files[currentPage].push(soundInfo);
     })
  
-    disp.set("Select_Audio");
-    getParamDisplay(disp.selected());
+    displayMode.set("Select_Audio");
+    updateParamText(displayMode.selected());
   }
   function AddFile() {
     let fileUploadRef = React.createRef();
@@ -206,36 +160,11 @@ function App() {
       grainSampler.start();
 
       isStarted = true;
-      getParamDisplay("boot");
+      updateParamText("boot");
     }
   };
 
-  let getParamDisplay = (text) => {
-    if (text && isStarted) {
-      clearTimeout(paramTimer);
-
-      let display = () => {
-        return (
-          <div key="paramDisplay" className="param-display">
-            <svg key={text} className="param-text-wrapper" viewBox="0 0 100 12">
-              <text
-                className="param-text"
-                dominantBaseline="middle"
-                textAnchor="middle"
-                x="50%"
-                y="59%"
-              >
-                {text}
-              </text>
-            </svg>
-          </div>
-        );
-      };
-
-      setParamDisplay(display);
-      paramTimer = setTimeout(() => setParamDisplay([]), 1000);
-    }
-  };
+ 
 
   const knobStyle = { position: "relative", marginLeft: "5.6%" };
 
@@ -255,7 +184,7 @@ function App() {
         const display = time.note(note).display;
         grainSampler.grainSize = noteLength * grainSampler.playbackRate;
         param = "grain " + display;
-        getParamDisplay(param);
+        updateParamText(param);
         knbSave[0] = midi;
       }}
     />,
@@ -284,7 +213,7 @@ function App() {
         }
         grainSampler.overlap = adjValue;
         param = "overlap " + grainSampler.overlap;
-        getParamDisplay(param);
+        updateParamText(param);
         knbSave[1] = midi;
       }}
     />,
@@ -300,11 +229,8 @@ function App() {
         let param;
         grainSampler.loopStart = val * bufferLength;
         grainSampler.loopEnd = sample.loopEnd();
-        // console.log(
-        //   "start " + grainSampler.loopStart + " end " + grainSampler.loopEnd
-        // );
         param = "start " + grainSampler.loopStart.toFixed(2);
-        getParamDisplay(param);
+        updateParamText(param);
         knbSave[2] = midi;
       }}
     />,
@@ -325,7 +251,7 @@ function App() {
         grainSampler.loopEnd = sample.loopEnd();
 
         param = "length  " + display;
-        getParamDisplay(param);
+        updateParamText(param);
         knbSave[3] = midi;
       }}
     />,
@@ -342,7 +268,7 @@ function App() {
         const logVal = Math.pow((val + 0.38) * 5.2, 5);
         filter.frequency.value = 0.1 + logVal;
         let param = "cutoff " + parseInt(filter.frequency.value);
-        getParamDisplay(param);
+        updateParamText(param);
         knbSave[4] = midi;
       }}
     />,
@@ -357,7 +283,7 @@ function App() {
         const q = filter.Q.value;
         filter.Q.value = val * 10;
         let param = "res " + q.toFixed(2);
-        getParamDisplay(param);
+        updateParamText(param);
         knbSave[5] = midi;
       }}
     />,
@@ -372,7 +298,7 @@ function App() {
         pitchMix.fade.value = val <= 0.04 ? 0 : val;
         pitchShift.feedback.value = val / 2;
         let param = pitchMix.fade.value.toFixed(2);
-        getParamDisplay("wet " + param);
+        updateParamText("wet " + param);
         knbSave[6] = midi;
       }}
     />,
@@ -387,7 +313,7 @@ function App() {
         const size = val;
         pitchShift.delayTime.value = size;
         let param = pitchShift.delayTime;
-        getParamDisplay("delay " + param);
+        updateParamText("delay " + param);
         knbSave[7] = midi;
       }}
     />,
@@ -404,7 +330,7 @@ function App() {
       action={(midi, val) => {
         vid.frag = num.tenth(1 + val * 6);
         let param = "frag " + vid.frag;
-        getParamDisplay(param);
+        updateParamText(param);
         knbSave[8] = midi;
       }}
     />,
@@ -418,7 +344,7 @@ function App() {
       action={(midi, val) => {
         vid.busy = parseInt(5200 - (200 + val * 5000));
         let param = "copy " + vid.busy;
-        getParamDisplay(param);
+        updateParamText(param);
         knbSave[9] = midi;
       }}
     />,
@@ -432,7 +358,7 @@ function App() {
       action={(midi, val) => {
         vid.shift = num.tenth(-4 + val * 8);
         let param = "tilt " + vid.shift;
-        getParamDisplay(param);
+        updateParamText(param);
         knbSave[10] = midi;
       }}
     />,
@@ -446,7 +372,7 @@ function App() {
       action={(midi, val) => {
         vid.speed = val > 0.1 ? val * 8 : val;
         let param = "threshold " + vid.speed.toFixed(2);
-        getParamDisplay(param);
+        updateParamText(param);
         knbSave[11] = midi;
       }}
     />,
@@ -460,23 +386,23 @@ function App() {
   const aClick = () => {
     let param = "grain synth";
     setTopKnobs(grainKnobs);
-    disp.set("Default");
-    getParamDisplay(param);
+    displayMode.set("Default");
+    updateParamText(param);
     cheatCode.add("A");
   };
 
   const bClick = () => {
     let param = "FX";
     setTopKnobs(fxKnobs);
-    disp.set("fx");
-    getParamDisplay(param);
+    displayMode.set("fx");
+    updateParamText(param);
     cheatCode.add("B");
   };
 
   const upPad = () => {
     setDPad(img.btn.dUp);
     let param;
-    const mode = disp.selected();
+    const mode = displayMode.selected();
     if (mode === "Default") {
       soundData.detune += 100;
       grainSampler.detune = soundData.detune;
@@ -491,12 +417,12 @@ function App() {
       param = "scale " + vid.scale();
     }
     cheatCode.add("^");
-    getParamDisplay(param);
+    updateParamText(param);
   };
 
   const downPad = () => {
     setDPad(img.btn.dDown);
-    const mode = disp.selected();
+    const mode = displayMode.selected();
     let param;
     if (mode === "Default") {
       soundData.detune -= 100;
@@ -513,14 +439,14 @@ function App() {
       param = "color";
     }
     cheatCode.add("v");
-    getParamDisplay(param);
+    updateParamText(param);
   };
 
   let playBackStep = 0.5;
   const leftPad = () => {
     let param;
     setDPad(img.btn.dLeft);
-    const mode = disp.selected();
+    const mode = displayMode.selected();
     if (mode === "Default") {
       if (
         grainSampler.playbackRate > playBackStep &&
@@ -552,12 +478,12 @@ function App() {
       param = "scroll " + (1 + vid.scrollSpeed()).toFixed(2);
     }
     cheatCode.add("<");
-    getParamDisplay(param);
+    updateParamText(param);
   };
 
   const rightPad = () => {
     let param;
-    const mode = disp.selected();
+    const mode = displayMode.selected();
     setDPad(img.btn.dRight);
     if (mode === "Default") {
       if (
@@ -590,17 +516,17 @@ function App() {
       param = "logic " + vid.operator();
     }
     cheatCode.add(">");
-    getParamDisplay(param);
+    updateParamText(param);
   };
 
   const selClick = () => {
     let param;
-    disp.next();
-    param = disp.selected();
+    displayMode.next();
+    param = displayMode.selected();
     if (param === "Video Synth") {
       setTopKnobs(videoKnobs);
     }
-    getParamDisplay(param);
+    updateParamText(param);
   };
 
   const startClick = () => {
@@ -637,10 +563,7 @@ function App() {
       key="game"
       className="grainboi noselect"
     >
-      <div className="display">
-        {screen}
-        {paramDisplay}
-      </div>
+      <Display displayMode={displayMode} paramText={paramText} isStarted={isStarted} />
       {AddFile()}
       <div className="knob-bar">{topKnobs}</div>
       <div className="button-area">

@@ -1,5 +1,5 @@
 import Tone from "tone";
-import C1 from "./samples/boot.mp3";
+import C1 from "../samples/boot.mp3";
 
 export let startBuffer = C1
 
