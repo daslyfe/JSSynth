@@ -1,68 +1,26 @@
 import React, { useEffect } from "react";
 import Tone from "tone";
-
-import { img } from "./images";
-import MidiInput, { midiPatch } from "./midi.js";
+import { img } from "./util/images";
+import MidiInput, { midiPatch } from "./util/midi.js";
 import { vid } from "./components/sketch";
 import Modules from "./dsp/modules";
 import soundData from "./dsp/soundData";
 import time from "./dsp/time";
-import { ar, num } from "./utility";
-import "./App.css";
-import Knob from "./simpleKnob";
+import { ar, num } from "./util/utility";
+import "./css/App.css";
+import Knob from "./components/knob";
 import Display from "./components/display";
+import dspUtil from "./dsp/dsp-util";
+import FileUploadComponent from "./components/add-file";
+import cheatCode from "./util/cheat-code";
 
 const { pitchShift, grainSampler, filter, pitchMix } = Modules;
 const { noteArray } = time;
+let { delayPitch, sample, isStarted } = dspUtil;
 
-let isStarted = false;
+const knbSave = [66, 0, 0, 0, 127, 0, 0, 0, 66, 66, 66, 40, 108];
 
-const delayPitch = {
-  array: [12, 19, 24, -24, -17, -12, -5, 0, 7],
-  nextPitch() {
-    ar.move(this.array, 0, 8);
-    return this.array[0];
-  },
-  prevPitch() {
-    ar.move(this.array, 8, 0);
-    return this.array[0];
-  },
-  selected() {
-    return this.array[0];
-  },
-};
-
-
-
-const cheatCode = {
-  press: "00000000000",
-  validate: "^^vv<><>BA!",
-  success() {
-    window.open("https://waterkeeper.org/donate/");
-  },
-  add(btn) {
-    cheatCode.press = cheatCode.press.slice(1, 11);
-    cheatCode.press += btn;
-    if (cheatCode.press === cheatCode.validate) {
-      cheatCode.success();
-    }
-  },
-};
-const knbSave = [66, 0, 0, 0, 127, 0, 0, 0, 66, 66, 66, 40];
-
-//
-
-const sample = {
-  loopLength: 0,
-  loopEnd: () =>
-    isStarted
-      ? parseFloat((grainSampler.loopStart + sample.loopLength) %
-        grainSampler.buffer.duration)
-      : parseFloat(grainSampler.loopStart + sample.loopLength),
-
-  playbackRate: 0,
-};
-
+//dynamic style object, used to dynamically scale processing sketch and other graphics
 export const appStyles = {
   canvasWidth: () => window.innerWidth,
   canvasHeight: () => window.innerHeight,
@@ -77,10 +35,11 @@ export const appStyles = {
   clearColor: "",
 };
 
-//this variable is outside the app loop so it doesnt get reset 
+//this variable is outside the app loop so it doesnt get reset
 let paramTimer;
 
 function App() {
+  //video component references this to know what to display
   const [displayMode, setDisplayMode] = React.useState({
     modes: ["Video Synth", "Select_Audio"],
     selected: () => "Default",
@@ -93,7 +52,6 @@ function App() {
     },
   });
 
-  
   const [dPad, setDPad] = React.useState(img.btn.dPad);
   const [paramText, setParamText] = React.useState();
 
@@ -105,51 +63,6 @@ function App() {
     }
   };
 
-
-
-  
-
-  //get data from file uploads and add it to the sound data array
-  function pushAudio(soundFiles) {
-    let currentPage = 0;
-    Array.from(soundFiles).forEach((soundFile) => {
-      const soundInfo = { name: soundFile.name, path: URL.createObjectURL(soundFile) };
-      if (soundData.files[currentPage].length >= 14) {
-        currentPage += 1;
-        soundData.files[currentPage] = [];
-      }
-      soundData.files[currentPage].push(soundInfo);
-    })
- 
-    displayMode.set("Select_Audio");
-    updateParamText(displayMode.selected());
-  }
-  function AddFile() {
-    let fileUploadRef = React.createRef();
-    return (
-      <>
-        <input
-          key="uploadREf"
-          style={{ display: "none" }}
-          ref={fileUploadRef}
-          id="audio_file"
-          type="file"
-          multiple
-          accept="audio/*"
-          onChange={() => {
-            pushAudio(fileUploadRef.current.files);
-          }}
-        />
-        <input
-          key="uploadUI"
-          className="screen-button-overlay"
-          type="button"
-          onMouseDown={() => fileUploadRef.current.click()}
-        />
-      </>
-    );
-  }
-  // const selector = midiInput.createSelector();
   const handleStart = () => {
     grainSampler.state === "stopped"
       ? grainSampler.start()
@@ -164,8 +77,6 @@ function App() {
       updateParamText("boot");
     }
   };
-
- 
 
   const knobStyle = { position: "relative", marginLeft: "5.6%" };
 
@@ -378,7 +289,10 @@ function App() {
       }}
     />,
   ];
+
+  //controls which set of knobs is displayed
   const [topKnobs, setTopKnobs] = React.useState(grainKnobs);
+
   const refreshKnobs = () => {
     grainKnobs[0].props.action(knbSave[0], knbSave[0] / 127);
     // grainKnobs[2].props.action(knbSave[2], knbSave[2] / 127);
@@ -534,6 +448,7 @@ function App() {
     if (isStarted) handleStart();
     cheatCode.add("!");
   };
+
   const handleDrop = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -541,7 +456,7 @@ function App() {
   useEffect(() => {
     //wait until the ui loads to start DSP
     Modules.patch();
-    //initiate default state for knobs
+    //initiate default values for the knobs
     grainKnobs.map((knob, key) =>
       knob.props.action(knbSave[key], knbSave[key] / 127)
     );
@@ -564,8 +479,17 @@ function App() {
       key="game"
       className="grainboi noselect"
     >
-      <Display displayMode={displayMode} paramText={paramText} isStarted={isStarted} />
-      {AddFile()}
+      <Display
+        displayMode={displayMode}
+        paramText={paramText}
+        isStarted={isStarted}
+      />
+      <FileUploadComponent
+        postAction={() => {
+          displayMode.set("Select_Audio");
+          updateParamText(displayMode.selected());
+        }}
+      />
       <div className="knob-bar">{topKnobs}</div>
       <div className="button-area">
         <div className="btn-circle"></div>
@@ -616,6 +540,20 @@ function App() {
           style={{ right: "33%" }}
           onMouseDown={startClick}
         ></button>
+        <Knob
+          key="volumeknob"
+          initVal={knbSave[12]}
+          style={{ position: "absolute", bottom: "12%", right: "7%" }}
+          diameter="12%"
+          color="#2F342E"
+          pointerColor="#CCCCCC"
+          action={(midi, val) => {
+            grainSampler.volume.value = (val * 32) - 32
+            let param = grainSampler.volume.value.toFixed(2);
+            updateParamText("Volume " + param);
+            knbSave[12] = midi;
+          }}
+        ></Knob>
       </div>
     </div>
   );

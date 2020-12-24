@@ -31,7 +31,7 @@
   left: 0;
   right: 0;
   margin: 0 auto;
-  background-image: url("./assets/4x/Grainboi.png");
+  background-image: url("../assets/4x/Grainboi.png");
   background-repeat: no-repeat;
   background-size: cover;
 }
@@ -116,7 +116,7 @@
   outline: none;
   position: absolute;
   border: none;
-  background-image: url("./assets/4x/a.png");
+  background-image: url("../assets/4x/a.png");
   border-radius: 50%;
   background-color: transparent;
   right: 8.7%;
@@ -141,7 +141,7 @@
   outline: none;
   position: absolute;
   border: none;
-  background-image: url("./assets/4x/b.png");
+  background-image: url("../assets/4x/b.png");
   background-color: transparent;
 
   border-radius: 50%;
@@ -167,7 +167,7 @@
   outline: none;
   position: absolute;
   border: none;
-  background-image: url("./assets/4x/sel.png");
+  background-image: url("../assets/4x/sel.png");
 
   border-radius: 30%;
   bottom: 25%;
@@ -252,6 +252,11 @@
   height: 33%;
   padding: 0;
   padding-bottom: 8%;
+}
+
+.knob-style {
+  position: "relative"; 
+  margin-left: "5.6%";
 }
 
 .d-btn:active {

@@ -1,5 +1,5 @@
 import React from "react";
-import "../App.css";
+
 import soundData from "../dsp/soundData";
 import VideoSynth from "./sketch";
 

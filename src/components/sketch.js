@@ -1,8 +1,10 @@
 import React from "react";
 import Sketch from "react-p5";
 import Modules from "../dsp/modules";
-import { ar } from "../utility";
+import { ar } from "../util/utility";
 import { appStyles } from "../App";
+
+//this object can be imported and the methods called to affect the video synth
 
 export const vid = {
   frag: 1, //between 1 and 10
@@ -40,7 +42,7 @@ export const vid = {
   nextOp: () => ar.move(vid.opts, 0, vid.opts.length - 1),
   t: 10000,
   scaleOp: [2, 3, 4, 6, 10],
-  nextScale: () => ar.move(vid.scaleOp, 0, vid.scaleOp.length - 1), //vid.scaleOp.move(0, vid.scaleOp.length - 1),
+  nextScale: () => ar.move(vid.scaleOp, 0, vid.scaleOp.length - 1), 
   scale: () => vid.scaleOp[0],
   threshold: 300,
   getScreenWidth: () => appStyles.gameWidth() / 1.2 / vid.scale(),
@@ -57,7 +59,7 @@ const median = (arr) => {
 };
 
 function VideoSynth() {
-  let setup = (p5, ref) => {
+  const setup = (p5, ref) => {
     p5.createCanvas(
       appStyles.gameWidth() / 1.2,
       appStyles.gameWidth() / 1.7
@@ -66,8 +68,8 @@ function VideoSynth() {
     p5.noSmooth();
   };
 
-  let refresh = (p5, ref) => {
-    p5.clear(); // use parent to render canvas in this ref (without that p5 render this canvas outside your component)
+  const refresh = (p5, ref) => {
+    p5.clear(); 
     p5.scale(vid.scale());
     p5.stroke(vid.selectedColors()[1]);
     p5.background(vid.selectedColors()[0]);
@@ -80,7 +82,7 @@ function VideoSynth() {
     middle = 0,
     high = 0;
 
-  let draw = (p5) => {
+  const draw = (p5) => {
     let fftArray = FFT.getValue();
     refresh(p5);
     lows.push(fftArray[1] * -1);
@@ -97,14 +99,13 @@ function VideoSynth() {
 
     const density = low;
 
-    // vid.speed = high/300
-    //low/200
 
     const screenWidth = vid.getScreenWidth();
     const screenHeight = vid.getScreenHeight();
 
     vid.t += 1;
 
+    //uses differnt logic operators to display pixes in a scanning fashion, three selectable modes
     if (vid.operator() === "AND") {
       for (let y = 0; y < screenWidth; y++) {
         for (let x = 0; x < screenHeight; x++) {

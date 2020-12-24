@@ -1,4 +1,4 @@
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Grainboy! a web based audio/visual synthesizer based on Tonejs and React
 
 ## Available Scripts
 
