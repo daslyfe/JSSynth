@@ -1,5 +1,13 @@
 Grainboy! a web based audio/visual synthesizer based on Tonejs and React
 
+## TODO 
+
+update the web audio context whenever safari for macOS adds support for advanced features, for now it just doesnt load in safari (but does work on Iphone)
+
+Solve file upload bug on IOS devices (may be impossible to upload audio file paths on ios)
+
+add midi back in
+
 ## Available Scripts
 
 In the project directory, you can run:
