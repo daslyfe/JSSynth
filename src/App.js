@@ -18,6 +18,7 @@ const { pitchShift, grainSampler, filter, pitchMix } = Modules;
 const { noteArray } = time;
 let { delayPitch, sample, isStarted } = dspUtil;
 
+//the init positions for the knobs
 const knbSave = [66, 0, 0, 0, 127, 0, 0, 0, 66, 66, 66, 40, 108];
 
 //dynamic style object, used to dynamically scale processing sketch and other graphics

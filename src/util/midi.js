@@ -46,7 +46,6 @@ function MidiInput() {
     // midi.inputs.map(enableAll);
     // setMidi({ ...midi, inputs: midi.inputs })
     midi.createSelector();
-  
   });
 
   return midi;
