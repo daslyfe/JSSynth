@@ -32,6 +32,8 @@ const delayPitch = {
   },
 };
 
+
+
 const cheatCode = {
   press: "00000000000",
   validate: "^^vv<><>BA!",
@@ -75,9 +77,8 @@ export const appStyles = {
   clearColor: "",
 };
 
+//this variable is outside the app loop so it doesnt get reset 
 let paramTimer;
-
-
 
 function App() {
   const [displayMode, setDisplayMode] = React.useState({

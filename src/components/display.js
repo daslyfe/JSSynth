@@ -30,6 +30,7 @@ function getScreenText(text, type) {
   );
 }
 
+//display loaded sounds as text
 const SoundList = () => {
   const fileList = soundData.files[soundData.currentPage];
   const selected = fileList[soundData.selected];
@@ -43,7 +44,7 @@ const SoundList = () => {
   return <div className="sound-list">{screenText}</div>;
 };
 
-const startupDisp = (
+const StartupDisp = () => (
   <div className="watermark-screen">
     {[
       getScreenText(">start: play and stop"),
@@ -60,16 +61,17 @@ const startupDisp = (
 );
 
 function Display({ paramText, displayMode, isStarted }) {
-  const screen =
-    displayMode.selected() === "Select_Audio"
-      ? <SoundList />
-      : isStarted
-      ? <VideoSynth />
-      : startupDisp;
+  const screen = 
+    displayMode.selected() === "Select_Audio" ? (
+      <SoundList />
+    ) : isStarted ? (
+      <VideoSynth />
+    ) : (
+      <StartupDisp />
+    );
 
-  return (
-    <div className="display">
-      {screen}
+  const ParamDisplay = () =>
+    paramText && paramText != "" ? (
       <div key="paramDisplay" className="param-display">
         <svg className="param-text-wrapper" viewBox="0 0 100 12">
           <text
@@ -83,6 +85,14 @@ function Display({ paramText, displayMode, isStarted }) {
           </text>
         </svg>
       </div>
+    ) : (
+      ""
+    );
+
+  return (
+    <div className="display">
+      {screen}
+      <ParamDisplay />
     </div>
   );
 }
