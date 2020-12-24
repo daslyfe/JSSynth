@@ -107,11 +107,11 @@ function App() {
   const [disp, setDisp] = React.useState({
     modes: ["Video Synth", "Select_Audio"],
     selected: () => "Default",
-    next: () => {
-      disp.selected = () => disp.modes[0];
-      ar.move(disp.modes, 0, 3);
+    next() {
+      this.selected = () => this.modes[0];
+      ar.move(this.modes, 0, 3);
     },
-    set: function (mode) {
+    set(mode) {
       if (mode) this.selected = () => mode;
     },
   });
@@ -154,18 +154,18 @@ function App() {
       ? VideoSynth()
       : startupDisp;
 
-  function pushAudio(files) {
-    let file;
+  //get data from file uploads and add it to the sound data array
+  function pushAudio(soundFiles) {
     let currentPage = 0;
-    for (let i = 0; i < files.length; i++) {
-      file = URL.createObjectURL(files[i]);
-      let soundInfo = { name: files[i].name, path: file };
+    Array.from(soundFiles).forEach((soundFile) => {
+      const soundInfo = { name: soundFile.name, path: URL.createObjectURL(soundFile) };
       if (soundData.files[currentPage].length >= 14) {
         currentPage += 1;
         soundData.files[currentPage] = [];
       }
       soundData.files[currentPage].push(soundInfo);
-    }
+    })
+ 
     disp.set("Select_Audio");
     getParamDisplay(disp.selected());
   }
@@ -249,10 +249,10 @@ function App() {
       pointerColor="#0071BC"
       action={(midi, val) => {
         let param;
-        let adjValue = parseInt(val * (noteArray.length - 1));
-        let note = noteArray[adjValue];
-        let noteLength = time.note(note).time;
-        let display = time.note(note).display;
+        const adjValue = parseInt(val * (noteArray.length - 1));
+        const note = noteArray[adjValue];
+        const noteLength = time.note(note).time;
+        const display = time.note(note).display;
         grainSampler.grainSize = noteLength * grainSampler.playbackRate;
         param = "grain " + display;
         getParamDisplay(param);
@@ -317,10 +317,10 @@ function App() {
       pointerColor="#BD5226"
       action={(midi, val) => {
         let param;
-        let adjValue = parseInt(val * (noteArray.length - 1));
-        let note = noteArray[adjValue];
-        let noteLength = time.note(note).time;
-        let display = time.note(note).display;
+        const adjValue = parseInt(val * (noteArray.length - 1));
+        const note = noteArray[adjValue];
+        const noteLength = time.note(note).time;
+        const display = time.note(note).display;
         sample.loopLength = noteLength * grainSampler.playbackRate;
         grainSampler.loopEnd = sample.loopEnd();
 
@@ -339,7 +339,7 @@ function App() {
       color="#7AB2E3"
       pointerColor="#0071BC"
       action={(midi, val) => {
-        let logVal = Math.pow((val + 0.38) * 5.2, 5);
+        const logVal = Math.pow((val + 0.38) * 5.2, 5);
         filter.frequency.value = 0.1 + logVal;
         let param = "cutoff " + parseInt(filter.frequency.value);
         getParamDisplay(param);
@@ -354,7 +354,7 @@ function App() {
       color="#61CD77"
       pointerColor="#009245"
       action={(midi, val) => {
-        let q = filter.Q.value;
+        const q = filter.Q.value;
         filter.Q.value = val * 10;
         let param = "res " + q.toFixed(2);
         getParamDisplay(param);
@@ -384,7 +384,7 @@ function App() {
       color="#FE6D2C"
       pointerColor="#BD5226"
       action={(midi, val) => {
-        let size = val;
+        const size = val;
         pitchShift.delayTime.value = size;
         let param = pitchShift.delayTime;
         getParamDisplay("delay " + param);
@@ -476,7 +476,7 @@ function App() {
   const upPad = () => {
     setDPad(img.btn.dUp);
     let param;
-    let mode = disp.selected();
+    const mode = disp.selected();
     if (mode === "Default") {
       soundData.detune += 100;
       grainSampler.detune = soundData.detune;
@@ -496,7 +496,7 @@ function App() {
 
   const downPad = () => {
     setDPad(img.btn.dDown);
-    let mode = disp.selected();
+    const mode = disp.selected();
     let param;
     if (mode === "Default") {
       soundData.detune -= 100;
@@ -520,7 +520,7 @@ function App() {
   const leftPad = () => {
     let param;
     setDPad(img.btn.dLeft);
-    let mode = disp.selected();
+    const mode = disp.selected();
     if (mode === "Default") {
       if (
         grainSampler.playbackRate > playBackStep &&
@@ -557,7 +557,7 @@ function App() {
 
   const rightPad = () => {
     let param;
-    let mode = disp.selected();
+    const mode = disp.selected();
     setDPad(img.btn.dRight);
     if (mode === "Default") {
       if (
@@ -612,8 +612,9 @@ function App() {
     e.stopPropagation();
   };
   useEffect(() => {
+    //wait until the ui loads to start DSP
     Modules.patch();
-    //initiate default state
+    //initiate default state for knobs
     grainKnobs.map((knob, key) =>
       knob.props.action(knbSave[key], knbSave[key] / 127)
     );
@@ -623,14 +624,8 @@ function App() {
     videoKnobs.map((knob, key) =>
       knob.props.action(knbSave[key + 8], knbSave[key + 8] / 127)
     );
-
-    // console.log ("w " + Document.onmousemove + " " + window.innerWidth)
-    // sample.loopEnd = function () { return (grainSampler.loopStart + this.loopLength) % grainSampler.buffer.duration  }
   }, []);
-  const grainStyle =
-    window.innerWidth > window.innerHeight
-      ? { height: "100vh", width: "59.35vh" }
-      : { width: "100vw", height: "165vw" };
+
   return (
     <div
       onMouseDown={(e) => {
@@ -641,7 +636,6 @@ function App() {
       onDrop={(e) => handleDrop(e)}
       key="game"
       className="grainboi noselect"
-      // style={grainStyle}
     >
       <div className="display">
         {screen}
