@@ -1,26 +1,20 @@
-import React, { useEffect, useState, useRef, Component } from "react";
+import React, { useEffect } from "react";
 import Tone from "tone";
 
 import { img } from "./images";
 import MidiInput, { midiPatch } from "./midi.js";
 import VideoSynth, { vid } from "./sketch";
 import Modules from "./modules";
-import SoundData from "./soundData";
-import Time from "./time";
+import soundData from "./soundData";
+import time from "./time";
 import { ar, num } from "./utility";
 import "./App.css";
-import Knob from './simpleKnob'
+import Knob from "./simpleKnob";
 
-const grainSampler = Modules.grainSampler;
-const filter = Modules.filter;
-const pitchShift = Modules.pitchShift;
-const pitchMix = Modules.pitchMix;
-const sound = SoundData;
-const time = Time;
-const noteArray = time.noteArray;
+const { pitchShift, grainSampler, filter, pitchMix } = Modules;
+const { noteArray } = time;
 
 let isStarted = false;
-// const midiInput = MidiInput();
 
 const delayPitch = {
   array: [12, 19, 24, -24, -17, -12, -5, 0, 7],
@@ -40,8 +34,10 @@ const delayPitch = {
 const cheatCode = {
   press: "00000000000",
   validate: "^^vv<><>BA!",
-  success: () => window.open("https://waterkeeper.org/donate/"),
-  add: (btn) => {
+  success() {
+    window.open("https://waterkeeper.org/donate/");
+  },
+  add(btn) {
     cheatCode.press = cheatCode.press.slice(1, 11);
     cheatCode.press += btn;
     if (cheatCode.press === cheatCode.validate) {
@@ -60,19 +56,17 @@ const sample = {
       ? (grainSampler.loopStart + sample.loopLength) %
         grainSampler.buffer.duration
       : grainSampler.loopStart + sample.loopLength,
-  // loopEnd: function () {
-  //   return grainSampler.loopStart + this.loopLength;
-  // },
+
   playbackRate: 0,
 };
 
 export const appStyles = {
   canvasWidth: () => window.innerWidth,
   canvasHeight: () => window.innerHeight,
-  gameHeight: function () {
+  gameHeight() {
     return this.canvasHeight() / 1;
   },
-  gameWidth: function () {
+  gameWidth() {
     return this.gameHeight() / 1.685;
   },
   screenBGColor: "#B8C0AB",
@@ -97,7 +91,11 @@ function getScreenText(text, type) {
     );
   }
   return (
-    <svg key={text} className="screen-text-wrapper noselect" viewBox="0 0 100 5">
+    <svg
+      key={text}
+      className="screen-text-wrapper noselect"
+      viewBox="0 0 100 5"
+    >
       <text key={text + "in"} className="screen-text" x="1" y="4">
         {text}
       </text>
@@ -123,9 +121,9 @@ function App() {
 
   const getSoundList = () => {
     let out = [];
-    for (let file in sound.files[sound.currentPage]) {
-      let fileList = sound.files[sound.currentPage];
-      if (fileList[file] === fileList[sound.selected]) {
+    for (let file in soundData.files[soundData.currentPage]) {
+      let fileList = soundData.files[soundData.currentPage];
+      if (fileList[file] === fileList[soundData.selected]) {
         out.push(getScreenText(fileList[file].name, "select"));
       } else {
         out.push(getScreenText(fileList[file].name));
@@ -162,11 +160,11 @@ function App() {
     for (let i = 0; i < files.length; i++) {
       file = URL.createObjectURL(files[i]);
       let soundInfo = { name: files[i].name, path: file };
-      if (sound.files[currentPage].length >= 14) {
+      if (soundData.files[currentPage].length >= 14) {
         currentPage += 1;
-        sound.files[currentPage] = [];
+        soundData.files[currentPage] = [];
       }
-      sound.files[currentPage].push(soundInfo);
+      soundData.files[currentPage].push(soundInfo);
     }
     disp.set("Select_Audio");
     getParamDisplay(disp.selected());
@@ -480,11 +478,11 @@ function App() {
     let param;
     let mode = disp.selected();
     if (mode === "Default") {
-      sound.detune += 100;
-      grainSampler.detune = sound.detune;
-      param = "detune " + sound.detune;
+      soundData.detune += 100;
+      grainSampler.detune = soundData.detune;
+      param = "detune " + soundData.detune;
     } else if (mode === "Select_Audio") {
-      grainSampler.buffer = new Tone.Buffer(sound.prev());
+      grainSampler.buffer = new Tone.Buffer(soundData.prev());
     } else if (mode === "fx") {
       pitchShift.pitch = delayPitch.nextPitch();
       param = "sparkle tune " + pitchShift.pitch.toString();
@@ -501,12 +499,12 @@ function App() {
     let mode = disp.selected();
     let param;
     if (mode === "Default") {
-      sound.detune -= 100;
+      soundData.detune -= 100;
       //remove this line once reimplement midi
-      grainSampler.detune = sound.detune;
-      param = "detune " + sound.detune;
+      grainSampler.detune = soundData.detune;
+      param = "detune " + soundData.detune;
     } else if (mode === "Select_Audio") {
-      grainSampler.buffer = new Tone.Buffer(sound.next());
+      grainSampler.buffer = new Tone.Buffer(soundData.next());
     } else if (mode === "fx") {
       pitchShift.pitch = delayPitch.prevPitch();
       param = "delay tune " + pitchShift.pitch.toString();
@@ -639,13 +637,12 @@ function App() {
         e.preventDefault();
         firstInput();
       }}
-      onDrag= {e=> e.preventDefault()}
+      onDrag={(e) => e.preventDefault()}
       onDrop={(e) => handleDrop(e)}
       key="game"
       className="grainboi noselect"
       // style={grainStyle}
     >
-      
       <div className="display">
         {screen}
         {paramDisplay}
