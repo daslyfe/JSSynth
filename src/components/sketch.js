@@ -42,16 +42,15 @@ export const vid = {
   nextOp: () => ar.move(vid.opts, 0, vid.opts.length - 1),
   t: 10000,
   scaleOp: [2, 3, 4, 6, 10],
-  nextScale: () => ar.move(vid.scaleOp, 0, vid.scaleOp.length - 1), 
+  nextScale: () => ar.move(vid.scaleOp, 0, vid.scaleOp.length - 1),
   scale: () => vid.scaleOp[0],
   threshold: 300,
   getScreenWidth: () => appStyles.gameWidth() / 1.2 / vid.scale(),
   getScreenHeight: () => appStyles.gameWidth() / 1.7 / vid.scale(),
 };
 
-const FFT = Modules.FFT;
+const { FFT } = Modules;
 
-Math.clamp = (val, min, max) => (val < min ? min : val > max ? max : val);
 const median = (arr) => {
   const mid = Math.floor(arr.length / 2),
     nums = [...arr].sort((a, b) => a - b);
@@ -69,7 +68,7 @@ function VideoSynth() {
   };
 
   const refresh = (p5, ref) => {
-    p5.clear(); 
+    p5.clear();
     p5.scale(vid.scale());
     p5.stroke(vid.selectedColors()[1]);
     p5.background(vid.selectedColors()[0]);
@@ -99,7 +98,7 @@ function VideoSynth() {
 
     const density = low;
 
-    //references browser width and height on every update to ensure that it correctly scales 
+    //references browser width and height on every update to ensure that it correctly scales
     const screenWidth = vid.getScreenWidth();
     const screenHeight = vid.getScreenHeight();
 
